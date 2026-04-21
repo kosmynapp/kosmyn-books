@@ -14,8 +14,8 @@ export function ComingSoonLanding({ teaser }: ComingSoonLandingProps) {
         </p>
         <p className="mt-lg text-body leading-relaxed text-text-secondary">
           Estamos preparando a nova biblioteca da Kosmyn. Até lá, continue explorando os livros em{' '}
-          <a href="https://kosmyn.com/library" className="underline underline-offset-2 hover:text-accent">
-            kosmyn.com/library
+          <a href="https://kosmyn.com/books" className="underline underline-offset-2 hover:text-accent">
+            kosmyn.com/books
           </a>
           .
         </p>
