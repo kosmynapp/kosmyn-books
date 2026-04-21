@@ -23,6 +23,7 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: (googleIdToken: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -158,12 +159,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function signInWithGoogle(googleIdToken: string) {
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/auth/login/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ googleIdToken }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        if (body.error === 'INVITE_REQUIRED') {
+          throw new Error(
+            'Conta Google ainda não cadastrada. Baixe o app Kosmyn para criar sua conta.',
+          );
+        }
+        throw new Error(body.error || 'Falha ao entrar com Google');
+      }
+
+      const data = await res.json();
+      localStorage.setItem('kosmyn_token', data.accessToken);
+      localStorage.setItem('kosmyn_refresh', data.refreshToken);
+      document.cookie = `kosmyn_token=${data.accessToken}; path=/; SameSite=Lax; max-age=${7 * 24 * 60 * 60}`;
+      document.cookie = `kosmyn_refresh=${data.refreshToken}; path=/; SameSite=Lax; max-age=${30 * 24 * 60 * 60}`;
+
+      const u = buildUser(data.user, data.accessToken);
+      if (u) setUser(u);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Falha ao entrar com Google';
+      setError(message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function signOut() {
     clearTokens();
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{ user, loading, error, signIn, signInWithGoogle, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   );

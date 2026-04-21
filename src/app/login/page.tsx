@@ -1,19 +1,20 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { GoogleSignIn } from '@/components/auth/google-sign-in';
 import { useAuth } from '@/lib/auth-context';
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get('redirect') || '/';
-  const { signIn, error } = useAuth();
+  const redirect = searchParams.get('redirect') || '/browse';
+  const { signIn, signInWithGoogle, error } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -33,6 +34,21 @@ function LoginForm() {
     }
   }
 
+  const handleGoogleToken = useCallback(
+    async (googleIdToken: string) => {
+      setIsSubmitting(true);
+      try {
+        await signInWithGoogle(googleIdToken);
+        router.push(redirect);
+      } catch {
+        // error is surfaced via context
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [signInWithGoogle, router, redirect],
+  );
+
   return (
     <main className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-6 py-16">
       <div className="w-full max-w-[28rem] rounded-xl border border-border bg-surface p-8 shadow-xl">
@@ -43,6 +59,18 @@ function LoginForm() {
           <p className="mt-2 text-sm text-text-secondary">
             Use sua conta Kosmyn para baixar livros.
           </p>
+        </div>
+
+        <div className="mb-6">
+          <GoogleSignIn onToken={handleGoogleToken} />
+        </div>
+
+        <div className="relative my-6 flex items-center">
+          <div className="flex-grow border-t border-border" />
+          <span className="mx-4 text-xs uppercase tracking-wider text-text-tertiary">
+            ou com e-mail
+          </span>
+          <div className="flex-grow border-t border-border" />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
