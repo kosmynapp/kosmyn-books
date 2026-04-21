@@ -37,6 +37,23 @@ export function DownloadButton({
 
   const redirectPath = `/book/${slug}${version ? `/v${version}` : ''}`;
 
+  // While AuthProvider is validating an existing token from localStorage,
+  // `user` is null but we don't yet know whether the session is valid —
+  // show a loading button instead of bouncing to /login, otherwise users
+  // who are already logged in get kicked out on the first click.
+  if (loading) {
+    return (
+      <Button
+        disabled
+        size="lg"
+        variant={format === 'pdf' ? 'default' : 'outline'}
+      >
+        <Loader2 className="h-4 w-4 animate-spin" />
+        {label}
+      </Button>
+    );
+  }
+
   if (!user) {
     return (
       <Button
