@@ -30,7 +30,7 @@ export function DownloadButton({
       <Button disabled variant="outline" size="lg" className="opacity-60">
         <Lock className="h-4 w-4" />
         {label}
-        <span className="ml-xs text-label">(em breve)</span>
+        <span className="ml-1 text-sm">(em breve)</span>
       </Button>
     );
   }

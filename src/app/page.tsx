@@ -11,7 +11,7 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen">
-      <section className="relative overflow-hidden py-4xl md:py-4xl">
+      <section className="relative overflow-hidden py-24 md:py-24">
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-[400px]"
           style={{
@@ -20,9 +20,9 @@ export default async function HomePage() {
           }}
           aria-hidden="true"
         />
-        <div className="container relative mx-auto max-w-[600px] px-md text-center">
+        <div className="container relative mx-auto max-w-[600px] px-4 text-center">
           <h1
-            className="text-[32px] font-bold leading-[1.1] tracking-tight md:text-display"
+            className="text-[32px] font-bold leading-[1.1] tracking-tight md:text-5xl"
             style={{
               background:
                 'linear-gradient(135deg, #F0F0FF 0%, #F0F0FF 40%, #8B5CF6 70%, #60A5FA 100%)',
@@ -33,10 +33,10 @@ export default async function HomePage() {
           >
             Leituras que viajam com você.
           </h1>
-          <p className="mt-lg text-body text-text-secondary">
+          <p className="mt-6 text-base text-text-secondary">
             Biblioteca aberta da Kosmyn — livros publicados pelas comunidades educacionais que constroem a plataforma.
           </p>
-          <div className="mt-xl">
+          <div className="mt-8">
             <Button asChild size="lg">
               <Link href="/browse">Explorar biblioteca</Link>
             </Button>
@@ -45,9 +45,9 @@ export default async function HomePage() {
       </section>
 
       {featured.length > 0 && (
-        <section className="container mx-auto max-w-7xl px-md py-2xl">
-          <h2 className="mb-lg text-heading font-semibold">Livros em destaque</h2>
-          <div className="grid grid-cols-2 gap-lg md:grid-cols-3 lg:grid-cols-3 lg:gap-xl">
+        <section className="container mx-auto max-w-7xl px-4 py-12">
+          <h2 className="mb-6 text-2xl font-semibold">Livros em destaque</h2>
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-3 lg:gap-8">
             {featured.map((program, i) => (
               <BookCard key={program.id} program={program} priority={i < 3} />
             ))}

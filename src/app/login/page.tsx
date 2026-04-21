@@ -34,25 +34,25 @@ function LoginForm() {
   }
 
   return (
-    <main className="container mx-auto flex min-h-[calc(100vh-8rem)] max-w-md items-center px-md py-2xl">
-      <div className="w-full rounded-lg border border-border bg-surface p-xl">
-        <div className="mb-lg text-center">
-          <h1 className="text-heading font-bold tracking-tight text-text-primary">
+    <main className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-6 py-16">
+      <div className="w-full max-w-md rounded-xl border border-border bg-surface p-8 shadow-xl">
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
             Entrar
           </h1>
-          <p className="mt-xs text-label text-text-secondary">
+          <p className="mt-2 text-sm text-text-secondary">
             Use sua conta Kosmyn para baixar livros.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-md">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
-          <div className="space-y-xs">
+          <div className="space-y-2">
             <Label htmlFor="email">E-mail</Label>
             <Input
               id="email"
@@ -61,10 +61,11 @@ function LoginForm() {
               placeholder="voce@email.com"
               required
               autoFocus
+              className="h-11"
             />
           </div>
 
-          <div className="space-y-xs">
+          <div className="space-y-2">
             <Label htmlFor="password">Senha</Label>
             <Input
               id="password"
@@ -72,19 +73,25 @@ function LoginForm() {
               type="password"
               placeholder="••••••••"
               required
+              className="h-11"
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full"
+            disabled={isSubmitting}
+          >
             {isSubmitting ? 'Entrando...' : 'Entrar'}
           </Button>
         </form>
 
-        <p className="mt-lg text-center text-label text-text-secondary">
+        <p className="mt-6 text-center text-sm text-text-secondary">
           Não tem conta?{' '}
           <Link
             href="https://kosmyn.com/download"
-            className="text-accent hover:underline underline-offset-2"
+            className="text-accent underline-offset-2 hover:underline"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -98,7 +105,9 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<main className="container mx-auto py-2xl" />}>
+    <Suspense
+      fallback={<main className="min-h-[calc(100vh-8rem)]" />}
+    >
       <LoginForm />
     </Suspense>
   );

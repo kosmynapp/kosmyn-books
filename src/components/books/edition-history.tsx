@@ -20,28 +20,28 @@ export function EditionHistoryList({
 }: EditionHistoryListProps) {
   if (editions.length === 0) {
     return (
-      <p className="text-label text-text-tertiary">Nenhuma edição disponível.</p>
+      <p className="text-sm text-text-tertiary">Nenhuma edição disponível.</p>
     );
   }
 
   return (
-    <ul className="space-y-sm">
+    <ul className="space-y-2">
       {editions.map((edition) => {
         const isCurrent = edition.version === currentVersion;
         const href = isCurrent ? `/book/${slug}` : `/book/${slug}/v${edition.version}`;
         return (
-          <li key={edition.id} className="flex items-center gap-md">
+          <li key={edition.id} className="flex items-center gap-4">
             <Link
               href={href}
-              className="text-body text-accent-secondary hover:underline underline-offset-2 numeric"
+              className="text-base text-accent-secondary hover:underline underline-offset-2 numeric"
             >
               v{edition.version}
             </Link>
-            <Badge variant="outline" className="text-label">
+            <Badge variant="outline" className="text-sm">
               {edition.status}
             </Badge>
             {edition.publishedAt && (
-              <span className="text-label text-text-tertiary numeric">
+              <span className="text-sm text-text-tertiary numeric">
                 {new Date(edition.publishedAt).toLocaleDateString('pt-BR')}
               </span>
             )}

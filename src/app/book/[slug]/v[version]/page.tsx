@@ -48,9 +48,9 @@ export default async function VersionedBookPage({
   const isDeprecated = edition.status === 'DEPRECATED';
 
   return (
-    <main className="container mx-auto max-w-7xl px-md py-2xl">
+    <main className="container mx-auto max-w-7xl px-4 py-12">
       {isDeprecated ? (
-        <Alert variant="destructive" className="mb-xl">
+        <Alert variant="destructive" className="mb-8">
           <AlertDescription>
             Esta edição foi descontinuada pelo editor.{' '}
             <Link href={`/book/${slug}`} className="underline underline-offset-2">
@@ -60,7 +60,7 @@ export default async function VersionedBookPage({
         </Alert>
       ) : (
         !isCurrent && (
-          <Alert className="mb-xl border-l-4 border-l-accent bg-surface">
+          <Alert className="mb-8 border-l-4 border-l-accent bg-surface">
             <AlertDescription>
               Esta é uma edição anterior.{' '}
               <Link href={`/book/${slug}`} className="underline underline-offset-2 text-accent">
@@ -71,7 +71,7 @@ export default async function VersionedBookPage({
         )
       )}
 
-      <div className="grid gap-xl lg:grid-cols-5 lg:gap-2xl">
+      <div className="grid gap-8 lg:grid-cols-5 lg:gap-12">
         <aside className="lg:col-span-2">
           <div className="lg:sticky lg:top-24">
             <BookCover coverUrl={data.coverUrl} alt={data.name} priority />
@@ -84,19 +84,19 @@ export default async function VersionedBookPage({
             status={edition.status}
             isCurrent={isCurrent}
           />
-          <h1 className="mt-md text-heading font-semibold leading-[1.2] tracking-tight">
+          <h1 className="mt-4 text-2xl font-semibold leading-[1.2] tracking-tight">
             {data.name}
           </h1>
           {data.author && (
-            <p className="mt-sm text-label text-text-secondary">por {data.author}</p>
+            <p className="mt-2 text-sm text-text-secondary">por {data.author}</p>
           )}
           {data.synopsis && (
-            <div className="mt-lg">
+            <div className="mt-6">
               <ReadingMeasure>{data.synopsis}</ReadingMeasure>
             </div>
           )}
 
-          <div className="mt-xl flex flex-wrap gap-md">
+          <div className="mt-8 flex flex-wrap gap-4">
             <DownloadButton
               slug={slug}
               format="pdf"
@@ -115,9 +115,9 @@ export default async function VersionedBookPage({
 
           {edition.changelog && (
             <>
-              <Separator className="my-xl" />
+              <Separator className="my-8" />
               <section>
-                <h2 className="mb-md text-heading font-semibold">Notas desta edição</h2>
+                <h2 className="mb-4 text-2xl font-semibold">Notas desta edição</h2>
                 <ReadingMeasure>{edition.changelog}</ReadingMeasure>
               </section>
             </>

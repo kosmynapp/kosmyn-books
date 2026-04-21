@@ -5,46 +5,19 @@ import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { BookCard } from '@/components/books/book-card';
-import { cn } from '@/lib/utils';
 import type { LibraryProgram } from '@/lib/api/books';
 
 interface BrowseExplorerProps {
   programs: LibraryProgram[];
 }
 
-interface TenantOption {
-  slug: string;
-  name: string;
-  count: number;
-}
-
 export function BrowseExplorer({ programs }: BrowseExplorerProps) {
   const [query, setQuery] = useState('');
-  const [tenant, setTenant] = useState<string>('all');
-
-  const tenantOptions: TenantOption[] = useMemo(() => {
-    const buckets = new Map<string, TenantOption>();
-    for (const p of programs) {
-      if (!p.tenantSlug) continue;
-      const existing = buckets.get(p.tenantSlug);
-      if (existing) {
-        existing.count += 1;
-      } else {
-        buckets.set(p.tenantSlug, {
-          slug: p.tenantSlug,
-          name: p.tenantName || p.tenantSlug,
-          count: 1,
-        });
-      }
-    }
-    return Array.from(buckets.values()).sort((a, b) => b.count - a.count);
-  }, [programs]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
+    if (q.length === 0) return programs;
     return programs.filter((p) => {
-      if (tenant !== 'all' && p.tenantSlug !== tenant) return false;
-      if (q.length === 0) return true;
       const haystack = [
         p.name,
         p.author ?? '',
@@ -56,37 +29,29 @@ export function BrowseExplorer({ programs }: BrowseExplorerProps) {
         .toLowerCase();
       return haystack.includes(q);
     });
-  }, [programs, query, tenant]);
-
-  const clearFilters = () => {
-    setQuery('');
-    setTenant('all');
-  };
-
-  const filtersActive = query.length > 0 || tenant !== 'all';
+  }, [programs, query]);
 
   return (
     <>
-      <header className="mb-xl">
-        <h1 className="text-heading font-bold">Todos os livros</h1>
-        <p className="mt-xs text-label text-text-secondary">
-          <span className="numeric">{filtered.length}</span>{' '}
-          {filtered.length === 1 ? 'livro encontrado' : 'livros encontrados'}
-          {filtersActive && programs.length !== filtered.length && (
-            <>
-              {' '}
+      <header className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-text-primary">
+            Todos os livros
+          </h1>
+          <p className="mt-1 text-sm text-text-secondary">
+            <span className="numeric">{filtered.length}</span>{' '}
+            {filtered.length === 1 ? 'livro encontrado' : 'livros encontrados'}
+            {query.length > 0 && filtered.length !== programs.length && (
               <span className="text-text-tertiary">
-                (de {programs.length})
+                {' '}(de {programs.length})
               </span>
-            </>
-          )}
-        </p>
-      </header>
+            )}
+          </p>
+        </div>
 
-      <div className="mb-xl flex flex-col gap-md md:flex-row md:items-center md:justify-between">
-        <div className="relative w-full md:max-w-sm">
+        <div className="relative w-full md:w-80">
           <Search
-            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary"
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary"
             aria-hidden="true"
           />
           <Input
@@ -95,7 +60,7 @@ export function BrowseExplorer({ programs }: BrowseExplorerProps) {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar por título, autor ou sinopse"
             aria-label="Buscar livros"
-            className="pl-9"
+            className="h-11 pl-9 pr-9"
           />
           {query.length > 0 && (
             <button
@@ -108,75 +73,31 @@ export function BrowseExplorer({ programs }: BrowseExplorerProps) {
             </button>
           )}
         </div>
-
-        {tenantOptions.length > 1 && (
-          <div className="flex flex-wrap gap-xs">
-            <FilterPill
-              active={tenant === 'all'}
-              onClick={() => setTenant('all')}
-              label={`Todos (${programs.length})`}
-            />
-            {tenantOptions.map((opt) => (
-              <FilterPill
-                key={opt.slug}
-                active={tenant === opt.slug}
-                onClick={() => setTenant(opt.slug)}
-                label={`${opt.name} (${opt.count})`}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      </header>
 
       {filtered.length === 0 ? (
-        <div className="py-4xl text-center">
-          <h2 className="text-heading font-semibold text-text-primary">
+        <div className="py-20 text-center">
+          <h2 className="text-xl font-semibold text-text-primary">
             Nenhum livro encontrado.
           </h2>
-          <p className="mt-md text-body text-text-secondary">
-            Ajuste a busca ou limpe os filtros.
+          <p className="mt-2 text-sm text-text-secondary">
+            Tente outra busca.
           </p>
-          {filtersActive && (
-            <div className="mt-xl">
-              <Button variant="outline" onClick={clearFilters}>
-                Limpar filtros
+          {query.length > 0 && (
+            <div className="mt-6">
+              <Button variant="outline" onClick={() => setQuery('')}>
+                Limpar busca
               </Button>
             </div>
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-lg md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4 lg:gap-8">
           {filtered.map((program, i) => (
             <BookCard key={program.id} program={program} priority={i < 4} />
           ))}
         </div>
       )}
     </>
-  );
-}
-
-function FilterPill({
-  active,
-  onClick,
-  label,
-}: {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={cn(
-        'rounded-full border px-md py-xs text-label transition-colors',
-        active
-          ? 'border-accent bg-accent/10 text-accent'
-          : 'border-border text-text-secondary hover:border-text-secondary hover:text-text-primary',
-      )}
-    >
-      {label}
-    </button>
   );
 }

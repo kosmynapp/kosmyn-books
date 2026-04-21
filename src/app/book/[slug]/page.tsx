@@ -55,8 +55,8 @@ export default async function BookPage({
   const edition = book.currentEdition;
 
   return (
-    <main className="container mx-auto max-w-7xl px-md py-2xl">
-      <div className="grid gap-xl lg:grid-cols-5 lg:gap-2xl">
+    <main className="container mx-auto max-w-7xl px-4 py-12">
+      <div className="grid gap-8 lg:grid-cols-5 lg:gap-12">
         <aside className="lg:col-span-2">
           <div className="lg:sticky lg:top-24">
             <BookCover coverUrl={book.coverUrl} alt={book.name} priority />
@@ -69,19 +69,19 @@ export default async function BookPage({
             status={edition.status}
             isCurrent
           />
-          <h1 className="mt-md text-heading font-semibold leading-[1.2] tracking-tight">
+          <h1 className="mt-4 text-2xl font-semibold leading-[1.2] tracking-tight">
             {book.name}
           </h1>
           {book.author && (
-            <p className="mt-sm text-label text-text-secondary">por {book.author}</p>
+            <p className="mt-2 text-sm text-text-secondary">por {book.author}</p>
           )}
           {book.synopsis && (
-            <div className="mt-lg">
+            <div className="mt-6">
               <ReadingMeasure>{book.synopsis}</ReadingMeasure>
             </div>
           )}
 
-          <div className="mt-xl flex flex-wrap gap-md">
+          <div className="mt-8 flex flex-wrap gap-4">
             <DownloadButton
               slug={book.slug}
               format="pdf"
@@ -98,17 +98,17 @@ export default async function BookPage({
 
           {edition.changelog && (
             <>
-              <Separator className="my-xl" />
+              <Separator className="my-8" />
               <section>
-                <h2 className="mb-md text-heading font-semibold">Notas desta edição</h2>
+                <h2 className="mb-4 text-2xl font-semibold">Notas desta edição</h2>
                 <ReadingMeasure>{edition.changelog}</ReadingMeasure>
               </section>
             </>
           )}
 
-          <Separator className="my-xl" />
+          <Separator className="my-8" />
           <section>
-            <h2 className="mb-md text-heading font-semibold">Histórico de edições</h2>
+            <h2 className="mb-4 text-2xl font-semibold">Histórico de edições</h2>
             <EditionHistoryList
               slug={book.slug}
               editions={[edition]}

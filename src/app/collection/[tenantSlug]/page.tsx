@@ -26,16 +26,16 @@ export default async function CollectionPage({
   const tenantName = filtered[0]?.tenantName ?? tenantSlug;
 
   return (
-    <main className="container mx-auto max-w-7xl px-md py-2xl">
-      <header className="mb-xl">
-        <h1 className="text-heading font-semibold">Biblioteca de {tenantName}</h1>
-        <p className="mt-xs text-label text-text-secondary">
+    <main className="container mx-auto max-w-7xl px-4 py-12">
+      <header className="mb-8">
+        <h1 className="text-2xl font-semibold">Biblioteca de {tenantName}</h1>
+        <p className="mt-1 text-sm text-text-secondary">
           <span className="numeric">{filtered.length}</span>{' '}
           {filtered.length === 1 ? 'livro publicado' : 'livros publicados'} pela comunidade {tenantName}.
         </p>
       </header>
 
-      <div className="grid grid-cols-2 gap-lg md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
         {filtered.map((program, i) => (
           <BookCard key={program.id} program={program} priority={i < 4} />
         ))}

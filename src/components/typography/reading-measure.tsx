@@ -10,7 +10,7 @@ export function ReadingMeasure({ children, width = 'narrow', className }: Readin
   return (
     <div
       className={cn(
-        'text-body leading-[1.6] text-text-primary',
+        'text-base leading-[1.6] text-text-primary',
         width === 'narrow' ? 'max-w-[65ch]' : 'max-w-[75ch]',
         className,
       )}
