@@ -1,0 +1,60 @@
+@import "tailwindcss";
+@import "@kosmynapp/tokens/tokens.css";
+@import "@kosmynapp/tokens/tailwind-preset.css";
+
+@layer base {
+  :root {
+    --background: var(--k-color-deep-space);
+    --foreground: var(--k-color-text-primary);
+    --card: var(--k-color-surface);
+    --card-foreground: var(--k-color-text-primary);
+    --popover: var(--k-color-surface);
+    --popover-foreground: var(--k-color-text-primary);
+    --primary: var(--k-color-accent);
+    --primary-foreground: var(--k-color-text-primary);
+    --secondary: var(--k-color-surface-light);
+    --secondary-foreground: var(--k-color-text-primary);
+    --muted: var(--k-color-surface-light);
+    --muted-foreground: var(--k-color-text-secondary);
+    --accent: var(--k-color-accent-secondary);
+    --accent-foreground: var(--k-color-text-primary);
+    --destructive: var(--k-color-destructive);
+    --destructive-foreground: var(--k-color-text-primary);
+    --border: var(--k-color-border);
+    --input: var(--k-color-border);
+    --ring: var(--k-color-accent);
+    --radius: var(--k-radius-md);
+    color-scheme: dark;
+  }
+
+  * { border-color: var(--k-color-border); }
+
+  html {
+    background-color: var(--k-color-deep-space);
+    color: var(--k-color-text-primary);
+    font-family: var(--k-font-sans), system-ui, sans-serif;
+  }
+
+  body {
+    background-color: var(--k-color-deep-space);
+    color: var(--k-color-text-primary);
+    font-size: var(--k-font-size-body);
+    line-height: var(--k-line-height-ui);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .numeric {
+    font-feature-settings: "tnum" 1, "lnum" 1;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
