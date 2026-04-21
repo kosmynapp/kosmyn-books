@@ -1,18 +1,18 @@
 import type { Metadata } from 'next';
-import { Source_Serif_4 } from 'next/font/google';
-import { GeistSans } from 'geist/font/sans';
+import { Nunito } from 'next/font/google';
 import { fetchPublicFlag } from '@/lib/feature-flags';
 import { getBookPrograms } from '@/lib/api/books';
 import { ComingSoonLanding } from '@/components/layout/coming-soon';
 import { SiteHeader } from '@/components/layout/site-header';
 import { SiteFooter } from '@/components/layout/site-footer';
+import { AuthProvider } from '@/lib/auth-context';
 import './globals.css';
 
-const sourceSerif = Source_Serif_4({
+const nunito = Nunito({
+  variable: '--font-nunito',
   subsets: ['latin'],
-  weight: ['400', '600'],
+  weight: ['400', '500', '600', '700', '800'],
   display: 'swap',
-  variable: '--font-source-serif-4',
 });
 
 export const metadata: Metadata = {
@@ -42,13 +42,13 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const live = await fetchPublicFlag('kBooksSubdomainLive');
-  const fontVars = `${GeistSans.variable} ${sourceSerif.variable}`;
+  const fontVars = nunito.variable;
 
   if (live !== true) {
     const teaser = await computeTeaserCount();
     return (
       <html lang="pt-BR" className={fontVars}>
-        <body className="antialiased">
+        <body className="font-sans antialiased">
           <ComingSoonLanding teaser={teaser} />
         </body>
       </html>
@@ -57,10 +57,12 @@ export default async function RootLayout({
 
   return (
     <html lang="pt-BR" className={fontVars}>
-      <body className="antialiased">
-        <SiteHeader />
-        {children}
-        <SiteFooter />
+      <body className="font-sans antialiased">
+        <AuthProvider>
+          <SiteHeader />
+          {children}
+          <SiteFooter />
+        </AuthProvider>
       </body>
     </html>
   );

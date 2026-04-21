@@ -13,17 +13,21 @@ vi.mock('@/lib/api/books', () => ({
 }));
 
 vi.mock('next/font/google', () => ({
-  Source_Serif_4: () => ({
-    variable: '--font-source-serif-4-mock',
-    className: 'source-serif-4-mock',
+  Nunito: () => ({
+    variable: '--font-nunito-mock',
+    className: 'nunito-mock',
   }),
 }));
 
-vi.mock('geist/font/sans', () => ({
-  GeistSans: {
-    variable: '--font-geist-sans-mock',
-    className: 'geist-mock',
-  },
+vi.mock('@/lib/auth-context', () => ({
+  AuthProvider: ({ children }: { children: React.ReactNode }) => children,
+  useAuth: () => ({
+    user: null,
+    loading: false,
+    error: null,
+    signIn: vi.fn(),
+    signOut: vi.fn(),
+  }),
 }));
 
 import { fetchPublicFlag } from '@/lib/feature-flags';
@@ -58,9 +62,6 @@ describe('RootLayout FF gate', () => {
     expect(container.innerHTML).toContain('Explorar');
   });
 
-  // <html> cannot be a child of <div>, so DOM rendering strips the tag.
-  // Inspect the JSX tree directly via React element props for these assertions.
-
   it('html element has lang="pt-BR" in both branches', async () => {
     (fetchPublicFlag as ReturnType<typeof vi.fn>).mockResolvedValue(false);
     const coming = await RootLayout({ children: <div /> });
@@ -71,11 +72,10 @@ describe('RootLayout FF gate', () => {
     expect((live as any).props.lang).toBe('pt-BR');
   });
 
-  it('injects Source Serif 4 + Geist Sans font variables on html', async () => {
+  it('injects Nunito font variable on html', async () => {
     (fetchPublicFlag as ReturnType<typeof vi.fn>).mockResolvedValue(true);
     const jsx = await RootLayout({ children: <div /> });
     const className = (jsx as any).props.className as string;
-    expect(className).toContain('--font-source-serif-4-mock');
-    expect(className).toContain('--font-geist-sans-mock');
+    expect(className).toContain('--font-nunito-mock');
   });
 });

@@ -2,10 +2,10 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { BookCover } from '@/components/books/book-cover';
 import { VersionBadge } from '@/components/books/version-badge';
+import { DownloadButton } from '@/components/books/download-button';
 import { ReadingMeasure } from '@/components/typography/reading-measure';
 import { getBookByVersion } from '@/lib/api/books';
 
@@ -84,7 +84,7 @@ export default async function VersionedBookPage({
             status={edition.status}
             isCurrent={isCurrent}
           />
-          <h1 className="mt-md font-serif text-heading font-semibold leading-[1.2] tracking-tight">
+          <h1 className="mt-md text-heading font-semibold leading-[1.2] tracking-tight">
             {data.name}
           </h1>
           {data.author && (
@@ -97,27 +97,27 @@ export default async function VersionedBookPage({
           )}
 
           <div className="mt-xl flex flex-wrap gap-md">
-            {edition.pdfUrl && (
-              <Button asChild size="lg">
-                <a href={edition.pdfUrl} target="_blank" rel="noopener noreferrer">
-                  Baixar PDF (v{edition.version})
-                </a>
-              </Button>
-            )}
-            {edition.epubUrl && (
-              <Button asChild variant="outline" size="lg">
-                <a href={edition.epubUrl} target="_blank" rel="noopener noreferrer">
-                  Baixar EPUB (v{edition.version})
-                </a>
-              </Button>
-            )}
+            <DownloadButton
+              slug={slug}
+              format="pdf"
+              available={!!edition.pdfUrl}
+              label={`Baixar PDF (v${edition.version})`}
+              version={edition.version}
+            />
+            <DownloadButton
+              slug={slug}
+              format="epub"
+              available={!!edition.epubUrl}
+              label={`Baixar EPUB (v${edition.version})`}
+              version={edition.version}
+            />
           </div>
 
           {edition.changelog && (
             <>
               <Separator className="my-xl" />
               <section>
-                <h2 className="mb-md font-serif text-heading font-semibold">Notas desta edição</h2>
+                <h2 className="mb-md text-heading font-semibold">Notas desta edição</h2>
                 <ReadingMeasure>{edition.changelog}</ReadingMeasure>
               </section>
             </>

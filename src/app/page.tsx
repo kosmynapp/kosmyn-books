@@ -22,7 +22,7 @@ export default async function HomePage() {
         />
         <div className="container relative mx-auto max-w-[600px] px-md text-center">
           <h1
-            className="font-serif text-[32px] font-semibold leading-[1.1] tracking-tight md:text-display"
+            className="text-[32px] font-bold leading-[1.1] tracking-tight md:text-display"
             style={{
               background:
                 'linear-gradient(135deg, #F0F0FF 0%, #F0F0FF 40%, #8B5CF6 70%, #60A5FA 100%)',
@@ -46,7 +46,7 @@ export default async function HomePage() {
 
       {featured.length > 0 && (
         <section className="container mx-auto max-w-7xl px-md py-2xl">
-          <h2 className="mb-lg font-serif text-heading font-semibold">Livros em destaque</h2>
+          <h2 className="mb-lg text-heading font-semibold">Livros em destaque</h2>
           <div className="grid grid-cols-2 gap-lg md:grid-cols-3 lg:grid-cols-3 lg:gap-xl">
             {featured.map((program, i) => (
               <BookCard key={program.id} program={program} priority={i < 3} />

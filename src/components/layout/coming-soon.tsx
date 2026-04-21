@@ -6,7 +6,7 @@ export function ComingSoonLanding({ teaser }: ComingSoonLandingProps) {
   return (
     <main className="flex min-h-screen items-center justify-center px-md py-3xl">
       <div className="mx-auto max-w-[480px] text-center">
-        <h1 className="font-serif text-display font-semibold tracking-tight md:text-display">
+        <h1 className="text-display font-bold tracking-tight md:text-display">
           Kosmyn Books
         </h1>
         <p className="mt-md text-heading font-semibold text-text-primary">

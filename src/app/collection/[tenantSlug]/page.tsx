@@ -28,7 +28,7 @@ export default async function CollectionPage({
   return (
     <main className="container mx-auto max-w-7xl px-md py-2xl">
       <header className="mb-xl">
-        <h1 className="font-serif text-heading font-semibold">Biblioteca de {tenantName}</h1>
+        <h1 className="text-heading font-semibold">Biblioteca de {tenantName}</h1>
         <p className="mt-xs text-label text-text-secondary">
           <span className="numeric">{filtered.length}</span>{' '}
           {filtered.length === 1 ? 'livro publicado' : 'livros publicados'} pela comunidade {tenantName}.

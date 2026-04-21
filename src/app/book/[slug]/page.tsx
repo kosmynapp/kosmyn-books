@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { BookCover } from '@/components/books/book-cover';
 import { VersionBadge } from '@/components/books/version-badge';
 import { EditionHistoryList } from '@/components/books/edition-history';
+import { DownloadButton } from '@/components/books/download-button';
 import { ReadingMeasure } from '@/components/typography/reading-measure';
 import { getBookBySlug, getBookPrograms } from '@/lib/api/books';
 
@@ -69,7 +69,7 @@ export default async function BookPage({
             status={edition.status}
             isCurrent
           />
-          <h1 className="mt-md font-serif text-heading font-semibold leading-[1.2] tracking-tight">
+          <h1 className="mt-md text-heading font-semibold leading-[1.2] tracking-tight">
             {book.name}
           </h1>
           {book.author && (
@@ -82,27 +82,25 @@ export default async function BookPage({
           )}
 
           <div className="mt-xl flex flex-wrap gap-md">
-            {edition.pdfUrl && (
-              <Button asChild size="lg">
-                <a href={edition.pdfUrl} target="_blank" rel="noopener noreferrer">
-                  Baixar PDF
-                </a>
-              </Button>
-            )}
-            {edition.epubUrl && (
-              <Button asChild variant="outline" size="lg">
-                <a href={edition.epubUrl} target="_blank" rel="noopener noreferrer">
-                  Baixar EPUB
-                </a>
-              </Button>
-            )}
+            <DownloadButton
+              slug={book.slug}
+              format="pdf"
+              available={!!edition.pdfUrl}
+              label="Baixar PDF"
+            />
+            <DownloadButton
+              slug={book.slug}
+              format="epub"
+              available={!!edition.epubUrl}
+              label="Baixar EPUB"
+            />
           </div>
 
           {edition.changelog && (
             <>
               <Separator className="my-xl" />
               <section>
-                <h2 className="mb-md font-serif text-heading font-semibold">Notas desta edição</h2>
+                <h2 className="mb-md text-heading font-semibold">Notas desta edição</h2>
                 <ReadingMeasure>{edition.changelog}</ReadingMeasure>
               </section>
             </>
@@ -110,7 +108,7 @@ export default async function BookPage({
 
           <Separator className="my-xl" />
           <section>
-            <h2 className="mb-md font-serif text-heading font-semibold">Histórico de edições</h2>
+            <h2 className="mb-md text-heading font-semibold">Histórico de edições</h2>
             <EditionHistoryList
               slug={book.slug}
               editions={[edition]}

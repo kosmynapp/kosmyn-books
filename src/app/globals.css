@@ -2,8 +2,15 @@
 @import "@kosmynapp/tokens/tokens.css";
 @import "@kosmynapp/tokens/tailwind-preset.css";
 
+/* Override @kosmynapp/tokens default (Geist Sans) with brand font Nunito. */
+@theme inline {
+  --font-sans: var(--font-nunito);
+}
+
 @layer base {
   :root {
+    /* Also override the token-level CSS var so --k-font-sans tracks Nunito. */
+    --k-font-sans: var(--font-nunito);
     --background: var(--k-color-deep-space);
     --foreground: var(--k-color-text-primary);
     --card: var(--k-color-surface);

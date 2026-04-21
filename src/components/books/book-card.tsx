@@ -20,7 +20,7 @@ export function BookCard({ program, priority }: BookCardProps) {
         className="transition-all duration-200 group-hover:scale-[1.02] group-hover:drop-shadow-[0_0_40px_rgba(139,92,246,0.35)]"
       />
       <div className="mt-sm space-y-xs">
-        <h3 className="font-serif text-body font-semibold leading-tight text-text-primary">
+        <h3 className="text-body font-semibold leading-tight text-text-primary">
           {program.name}
         </h3>
         {program.author && (
