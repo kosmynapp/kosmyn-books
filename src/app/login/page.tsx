@@ -35,7 +35,7 @@ function LoginForm() {
 
   return (
     <main className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-6 py-16">
-      <div className="w-full max-w-md rounded-xl border border-border bg-surface p-8 shadow-xl">
+      <div className="w-full max-w-[28rem] rounded-xl border border-border bg-surface p-8 shadow-xl">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold tracking-tight text-text-primary">
             Entrar

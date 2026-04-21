@@ -57,7 +57,20 @@ export function DownloadButton({
     setSubmitting(true);
     try {
       const result = getBookSignedUrl(slug, format);
-      window.location.href = result.signedUrl;
+      // Programmatic <a download> click → browser starts download without
+      // navigating away, so we can reset the spinner immediately (the
+      // Content-Disposition: attachment header means the browser never fires
+      // a navigation/pageshow event we could hook into).
+      const link = document.createElement('a');
+      link.href = result.signedUrl;
+      link.rel = 'noopener';
+      link.download = result.fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      // Small delay to let the browser latch the download request before
+      // the disabled state toggles back (prevents double-click double-fire).
+      setTimeout(() => setSubmitting(false), 800);
     } catch (err) {
       if (err instanceof AuthError) {
         window.location.href = `/login?redirect=${encodeURIComponent(redirectPath)}`;
