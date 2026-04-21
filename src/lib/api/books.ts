@@ -45,8 +45,9 @@ export interface LibraryProgramVersioned extends LibraryProgram {
   currentVersion: string;
 }
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_KOSMYN_API_URL ?? 'https://api.kosmyn.com/api/v1';
+import { SERVER_API_BASE } from '../server-api-base';
+
+const API_BASE = SERVER_API_BASE;
 const DEFAULT_TENANT_ID = process.env.DEFAULT_TENANT_ID ?? 'default';
 
 /**

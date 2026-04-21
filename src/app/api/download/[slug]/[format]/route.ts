@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { SERVER_API_BASE } from '@/lib/server-api-base';
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_KOSMYN_API_URL ?? 'https://api.kosmyn.com/api/v1';
+const API_BASE = SERVER_API_BASE;
 const DEFAULT_TENANT_ID = process.env.DEFAULT_TENANT_ID ?? 'default';
 
 export const dynamic = 'force-dynamic';

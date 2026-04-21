@@ -1,7 +1,7 @@
 import { unstable_cache } from 'next/cache';
+import { SERVER_API_BASE } from './server-api-base';
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_KOSMYN_API_URL ?? 'https://api.kosmyn.com/api/v1';
+const API_BASE = SERVER_API_BASE;
 
 /**
  * Fetch a public (whitelisted) feature flag.
