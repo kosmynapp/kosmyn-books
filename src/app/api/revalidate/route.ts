@@ -1,4 +1,4 @@
-import { revalidateTag } from 'next/cache';
+import { revalidateTag, revalidatePath } from 'next/cache';
 import type { NextRequest } from 'next/server';
 
 interface RevalidatePayload {
@@ -36,6 +36,11 @@ export async function POST(request: NextRequest) {
   // Also invalidate the FF cache so a flag flip propagates on next webhook hit.
   revalidateTag('ff:public', 'max');
   revalidateTag('ff:kBooksSubdomainLive', 'max');
+  // Force re-render of the prerendered HTML for the layout-gated routes —
+  // revalidateTag only invalidates the fetch cache, not the static HTML.
+  revalidatePath('/', 'layout');
+  revalidatePath('/browse');
+  revalidatePath(`/book/${payload.slug}`);
 
   return Response.json({ revalidated: true, slug: payload.slug });
 }

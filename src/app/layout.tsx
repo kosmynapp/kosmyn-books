@@ -15,6 +15,12 @@ const nunito = Nunito({
   display: 'swap',
 });
 
+// Layout gates every page on the FF — run per request so a flag flip
+// propagates immediately instead of waiting for ISR revalidation of the
+// prerendered HTML. unstable_cache inside fetchPublicFlag still provides
+// 60s throttling at the fetch layer.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Kosmyn Books',
   description: 'Biblioteca aberta da Kosmyn — livros publicados pelas comunidades educacionais.',
