@@ -33,6 +33,9 @@ export async function POST(request: NextRequest) {
   revalidateTag('books:featured', 'max');
   revalidateTag('books:browse', 'max');
   revalidateTag('books:all', 'max');
+  // Also invalidate the FF cache so a flag flip propagates on next webhook hit.
+  revalidateTag('ff:public', 'max');
+  revalidateTag('ff:kBooksSubdomainLive', 'max');
 
   return Response.json({ revalidated: true, slug: payload.slug });
 }
