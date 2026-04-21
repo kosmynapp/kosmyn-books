@@ -6,6 +6,7 @@ import { ComingSoonLanding } from '@/components/layout/coming-soon';
 import { SiteHeader } from '@/components/layout/site-header';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { AuthProvider } from '@/lib/auth-context';
+import { StarField } from '@/components/effects/star-field';
 import './globals.css';
 
 const nunito = Nunito({
@@ -55,6 +56,7 @@ export default async function RootLayout({
     return (
       <html lang="pt-BR" className={fontVars}>
         <body className="font-sans antialiased">
+          <StarField />
           <ComingSoonLanding teaser={teaser} />
         </body>
       </html>
@@ -64,6 +66,7 @@ export default async function RootLayout({
   return (
     <html lang="pt-BR" className={fontVars}>
       <body className="font-sans antialiased">
+        <StarField />
         <AuthProvider>
           <SiteHeader />
           {children}

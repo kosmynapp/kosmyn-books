@@ -74,7 +74,111 @@
   }
 }
 
+/* ============================================
+   STAR FIELD — Dense multi-layer
+   ============================================ */
+.star-field {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.star-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.star-layer-1 {
+  width: 1px;
+  height: 1px;
+  box-shadow:
+    2vw 5vh #F0F0FF, 7vw 12vh #F0F0FF, 12vw 3vh #F0F0FF,
+    17vw 18vh #F0F0FF, 22vw 8vh #F0F0FF, 27vw 25vh #F0F0FF,
+    32vw 15vh #F0F0FF, 37vw 32vh #F0F0FF, 42vw 6vh #F0F0FF,
+    47vw 22vh #F0F0FF, 52vw 38vh #F0F0FF, 57vw 12vh #F0F0FF,
+    62vw 28vh #F0F0FF, 67vw 45vh #F0F0FF, 72vw 8vh #F0F0FF,
+    77vw 35vh #F0F0FF, 82vw 18vh #F0F0FF, 87vw 42vh #F0F0FF,
+    92vw 10vh #F0F0FF, 97vw 28vh #F0F0FF,
+    4vw 48vh #F0F0FF, 9vw 55vh #F0F0FF, 14vw 62vh #F0F0FF,
+    19vw 72vh #F0F0FF, 24vw 58vh #F0F0FF, 29vw 82vh #F0F0FF,
+    34vw 68vh #F0F0FF, 39vw 52vh #F0F0FF, 44vw 78vh #F0F0FF,
+    49vw 65vh #F0F0FF, 54vw 88vh #F0F0FF, 59vw 55vh #F0F0FF,
+    64vw 72vh #F0F0FF, 69vw 92vh #F0F0FF, 74vw 58vh #F0F0FF,
+    79vw 75vh #F0F0FF, 84vw 85vh #F0F0FF, 89vw 62vh #F0F0FF,
+    94vw 78vh #F0F0FF, 99vw 95vh #F0F0FF,
+    3vw 95vh #F0F0FF, 16vw 88vh #F0F0FF, 33vw 92vh #F0F0FF,
+    48vw 96vh #F0F0FF, 66vw 85vh #F0F0FF, 81vw 98vh #F0F0FF,
+    6vw 35vh #F0F0FF, 51vw 42vh #F0F0FF, 73vw 52vh #F0F0FF,
+    88vw 48vh #F0F0FF, 36vw 15vh #F0F0FF, 61vw 8vh #F0F0FF;
+  animation: twinkle 4s ease-in-out infinite alternate;
+}
+
+.star-layer-2 {
+  width: 1.5px;
+  height: 1.5px;
+  box-shadow:
+    5vw 15vh rgba(240,240,255,0.9), 15vw 35vh rgba(240,240,255,0.9),
+    25vw 52vh rgba(240,240,255,0.9), 35vw 8vh rgba(240,240,255,0.9),
+    45vw 28vh rgba(240,240,255,0.9), 55vw 72vh rgba(240,240,255,0.9),
+    65vw 48vh rgba(240,240,255,0.9), 75vw 22vh rgba(240,240,255,0.9),
+    85vw 65vh rgba(240,240,255,0.9), 95vw 38vh rgba(240,240,255,0.9),
+    10vw 78vh rgba(240,240,255,0.9), 20vw 92vh rgba(240,240,255,0.9),
+    30vw 42vh rgba(240,240,255,0.9), 40vw 58vh rgba(240,240,255,0.9),
+    50vw 85vh rgba(240,240,255,0.9), 60vw 15vh rgba(240,240,255,0.9),
+    70vw 68vh rgba(240,240,255,0.9), 80vw 32vh rgba(240,240,255,0.9),
+    90vw 88vh rgba(240,240,255,0.9), 98vw 55vh rgba(240,240,255,0.9),
+    8vw 42vh rgba(240,240,255,0.9), 38vw 25vh rgba(240,240,255,0.9),
+    68vw 82vh rgba(240,240,255,0.9), 78vw 5vh rgba(240,240,255,0.9);
+  animation: twinkle 5s ease-in-out 0.5s infinite alternate;
+}
+
+.star-layer-3 {
+  width: 2px;
+  height: 2px;
+  box-shadow:
+    12vw 20vh rgba(139,92,246,0.8), 28vw 45vh rgba(96,165,250,0.7),
+    42vw 15vh rgba(139,92,246,0.7), 58vw 65vh rgba(96,165,250,0.8),
+    72vw 35vh rgba(139,92,246,0.7), 88vw 55vh rgba(96,165,250,0.7),
+    18vw 75vh rgba(52,211,153,0.5), 48vw 90vh rgba(251,113,133,0.5),
+    82vw 10vh rgba(139,92,246,0.8), 35vw 58vh rgba(96,165,250,0.6),
+    65vw 25vh rgba(139,92,246,0.6), 92vw 72vh rgba(96,165,250,0.7),
+    8vw 88vh rgba(52,211,153,0.4), 55vw 5vh rgba(251,113,133,0.4);
+  animation: twinkle 7s ease-in-out 1s infinite alternate;
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.2; }
+  50% { opacity: 0.8; }
+  100% { opacity: 1; }
+}
+
+/* ============================================
+   GLASSMORPHISM
+   ============================================ */
+.glass-card {
+  background: rgba(22, 25, 55, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(109, 40, 217, 0.2);
+  border-radius: 20px;
+}
+
+.glass-card:hover {
+  border-color: rgba(109, 40, 217, 0.4);
+  background: rgba(22, 25, 55, 0.75);
+}
+
+.aurora-gradient {
+  background: linear-gradient(135deg, #6D28D9, #3B82F6, #34D399);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .star-layer-1, .star-layer-2, .star-layer-3 {
+    animation: none !important;
+    opacity: 0.6;
+  }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
