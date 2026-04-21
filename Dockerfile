@@ -8,6 +8,16 @@ WORKDIR /app
 ARG NPM_TOKEN
 ENV NPM_TOKEN=$NPM_TOKEN
 
+# NEXT_PUBLIC_* env vars must be available at `next build` time so Next.js
+# inlines them into the client bundle. Railway passes these as build ARGs
+# automatically when the service has matching variables set.
+ARG NEXT_PUBLIC_KOSMYN_API_URL
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
+ARG NEXT_PUBLIC_DEFAULT_TENANT_ID
+ENV NEXT_PUBLIC_KOSMYN_API_URL=$NEXT_PUBLIC_KOSMYN_API_URL
+ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
+ENV NEXT_PUBLIC_DEFAULT_TENANT_ID=$NEXT_PUBLIC_DEFAULT_TENANT_ID
+
 COPY package.json package-lock.json* .npmrc ./
 RUN npm ci --no-audit --no-fund
 
