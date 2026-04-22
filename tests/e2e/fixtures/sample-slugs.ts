@@ -11,8 +11,8 @@
 
 const DEFAULT_SLUGS: readonly string[] = [
   'mitologia-grega',
-  'saude-coletiva',
-  'filosofia-antiga',
+  'direito',
+  'enem-por-missoes-v1',
 ] as const;
 
 export const SAMPLE_SLUGS: readonly string[] =

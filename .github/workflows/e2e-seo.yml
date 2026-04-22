@@ -14,17 +14,15 @@ on:
   schedule:
     # Daily at 06:00 UTC (03:00 BRT) — off-peak; detects SEO regressions from unrelated deploys
     - cron: '0 6 * * *'
-  # push trigger: DESABILITADO em Wave 0 (stub spec).
-  # Wave 3 Plan 30-05 habilita depois que seo.spec.ts tem assertions reais.
-  # push:
-  #   branches: [main]
-  #   paths:
-  #     - 'src/app/book/**'
-  #     - 'src/app/layout.tsx'
-  #     - 'src/app/sitemap.ts'
-  #     - 'src/app/robots.ts'
-  #     - 'tests/e2e/**'
-  #     - 'playwright.config.ts'
+  push:
+    branches: [main]
+    paths:
+      - 'src/app/book/**'
+      - 'src/app/layout.tsx'
+      - 'src/app/sitemap.ts'
+      - 'src/app/robots.ts'
+      - 'tests/e2e/**'
+      - 'playwright.config.ts'
 
 concurrency:
   group: e2e-seo
