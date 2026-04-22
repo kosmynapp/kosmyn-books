@@ -27,18 +27,35 @@ export async function generateMetadata({
   const { slug } = await params;
   const book = await getBookBySlug(slug);
   if (!book) return { title: 'Livro não encontrado — Kosmyn Books' };
+  const description = book.synopsis ?? book.description ?? undefined;
+  // Phase 30 — dynamic OG image rendered by opengraph-image.tsx route segment.
+  // Next.js auto-wires this as /book/[slug]/opengraph-image; listing in images
+  // array here ensures Twitter cards also pick it up.
+  const ogImageUrl = `https://books.kosmyn.com/book/${slug}/opengraph-image`;
   return {
     title: `${book.name} — Kosmyn Books`,
-    description: book.synopsis ?? book.description ?? undefined,
+    description,
     alternates: {
       canonical: `https://books.kosmyn.com/book/${slug}`,
     },
     openGraph: {
       title: book.name,
-      description: book.synopsis ?? undefined,
-      images: book.coverUrl ? [book.coverUrl] : undefined,
+      description,
+      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: book.name }],
       locale: 'pt_BR',
       type: 'book',
+      url: `https://books.kosmyn.com/book/${slug}`,
+      siteName: 'Kosmyn Books',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: book.name,
+      description,
+      images: [ogImageUrl],
+    },
+    other: {
+      'book:author': book.author ?? '',
+      'book:release_date': book.currentEdition?.publishedAt ?? '',
     },
   };
 }
@@ -117,6 +134,92 @@ export default async function BookPage({
           </section>
         </div>
       </div>
+
+      {/* Phase 30 — JSON-LD Book (schema.org) + LearningResource (LRMI) */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': ['Book', 'LearningResource'],
+            '@id': `https://books.kosmyn.com/book/${book.slug}`,
+            name: book.name,
+            description: book.synopsis ?? book.description ?? undefined,
+            url: `https://books.kosmyn.com/book/${book.slug}`,
+            inLanguage: book.language ?? 'pt-BR',
+            bookFormat: 'https://schema.org/EBook',
+            image: book.coverUrl ?? undefined,
+            author: book.author
+              ? { '@type': 'Person', name: book.author }
+              : undefined,
+            publisher: {
+              '@type': 'Organization',
+              name: book.tenantName,
+              url: `https://books.kosmyn.com/collection/${book.tenantSlug}`,
+            },
+            bookEdition: edition.version,
+            datePublished: edition.publishedAt ?? undefined,
+            numberOfPages: edition.pageCount ?? undefined,
+            wordCount: edition.wordCount ?? undefined,
+            isAccessibleForFree: true,
+            potentialAction: [
+              edition.pdfUrl
+                ? {
+                    '@type': 'ReadAction',
+                    target: edition.pdfUrl,
+                    name: 'Baixar PDF',
+                  }
+                : null,
+              edition.epubUrl
+                ? {
+                    '@type': 'ReadAction',
+                    target: edition.epubUrl,
+                    name: 'Baixar EPUB',
+                  }
+                : null,
+            ].filter(Boolean),
+            // LRMI educational extensions
+            learningResourceType: 'Book',
+            educationalUse: 'Reading',
+          }),
+        }}
+      />
+
+      {/* Phase 30 — Breadcrumb JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Kosmyn Books',
+                item: 'https://books.kosmyn.com/',
+              },
+              {
+                '@type': 'ListItem',
+                position: 2,
+                name: 'Browse',
+                item: 'https://books.kosmyn.com/browse',
+              },
+              {
+                '@type': 'ListItem',
+                position: 3,
+                name: book.tenantName,
+                item: `https://books.kosmyn.com/collection/${book.tenantSlug}`,
+              },
+              {
+                '@type': 'ListItem',
+                position: 4,
+                name: book.name,
+              },
+            ],
+          }),
+        }}
+      />
     </main>
   );
 }
