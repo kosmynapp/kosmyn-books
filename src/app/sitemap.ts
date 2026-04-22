@@ -10,6 +10,11 @@ import { getTaxonomyFamily } from '@/lib/api/taxonomy';
 
 const BASE_URL = 'https://books.kosmyn.com';
 
+// Force runtime generation, not build-time static. At build time the container
+// can't reach the platform API (Railway internal DNS not yet resolved), which
+// would freeze an empty sitemap. `force-dynamic` + `revalidate=3600` gives us
+// a fresh sitemap that still caches at the edge for 1h.
+export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
