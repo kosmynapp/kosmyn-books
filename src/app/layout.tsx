@@ -23,6 +23,7 @@ const nunito = Nunito({
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://books.kosmyn.com'),
   title: 'Kosmyn Books',
   description: 'Biblioteca aberta da Kosmyn — livros publicados pelas comunidades educacionais.',
   openGraph: {
@@ -67,6 +68,45 @@ export default async function RootLayout({
     <html lang="pt-BR" className={fontVars}>
       <body className="font-sans antialiased">
         <StarField />
+        {/* Phase 30 D-06 — WebSite + Organization JSON-LD para sitelinks searchbox + brand knowledge graph.
+            NÃO injetar no branch coming-soon (crawlers ignoram landing). Decisão locked: CONTEXT.md D-06. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: 'Kosmyn Books',
+              url: 'https://books.kosmyn.com',
+              inLanguage: 'pt-BR',
+              description: 'Biblioteca aberta da Kosmyn — livros publicados pelas comunidades educacionais.',
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: {
+                  '@type': 'EntryPoint',
+                  urlTemplate: 'https://books.kosmyn.com/browse?q={search_term_string}',
+                },
+                'query-input': 'required name=search_term_string',
+              },
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'Kosmyn',
+              url: 'https://kosmyn.com',
+              logo: 'https://kosmyn.com/logo.png',
+              sameAs: [
+                'https://books.kosmyn.com',
+                'https://admin.kosmyn.com',
+              ],
+            }),
+          }}
+        />
         <AuthProvider>
           <SiteHeader />
           {children}

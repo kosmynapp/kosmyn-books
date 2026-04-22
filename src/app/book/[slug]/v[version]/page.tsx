@@ -25,6 +25,13 @@ export async function generateMetadata({
   const { slug } = await params;
   return {
     title: `Edição — Kosmyn Books`,
+    // Phase 30 D-07 — páginas versionadas não devem competir com canonical
+    // /book/[slug] pelo ranking. noindex bloqueia indexação; follow mantém
+    // PageRank flowing para canonical. Decisão locked: CONTEXT.md D-07.
+    robots: {
+      index: false,
+      follow: true,
+    },
     alternates: {
       canonical: `https://books.kosmyn.com/book/${slug}`,
     },

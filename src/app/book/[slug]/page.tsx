@@ -28,10 +28,14 @@ export async function generateMetadata({
   const book = await getBookBySlug(slug);
   if (!book) return { title: 'Livro não encontrado — Kosmyn Books' };
   const description = book.synopsis ?? book.description ?? undefined;
-  // Phase 30 — dynamic OG image rendered by opengraph-image.tsx route segment.
-  // Next.js auto-wires this as /book/[slug]/opengraph-image; listing in images
-  // array here ensures Twitter cards also pick it up.
-  const ogImageUrl = `https://books.kosmyn.com/book/${slug}/opengraph-image`;
+  // Phase 30 D-01 — og:image pre-rendered pelo worker Puppeteer (Phase 26) e
+  // servida direto do R2 CDN (assets.kosmyn.com) em path versionado imutável.
+  // Fallback estático /og-default.png (Plan 30-01) usado apenas em legacy
+  // editions sem ogImageUrl populado — Plan 30-03 backfill populou todas em prod.
+  // Decisão locked: CONTEXT.md D-01/D-02/D-03.
+  const ogImageUrl =
+    book.currentEdition?.ogImageUrl ??
+    'https://books.kosmyn.com/og-default.png';
   return {
     title: `${book.name} — Kosmyn Books`,
     description,
