@@ -86,7 +86,7 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
   };
 
   return (
-    <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-background/80 px-4 py-3 backdrop-blur">
+    <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1.5 border-b border-border bg-background/80 px-2 py-2 backdrop-blur sm:gap-3 sm:px-4 sm:py-3">
       <Button
         variant="ghost"
         size="icon"
@@ -96,9 +96,14 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
       >
         <ChevronLeft className="h-4 w-4" aria-hidden="true" />
       </Button>
-      <div className="flex items-center gap-2 text-sm">
-        <span aria-live="polite">
-          Página {currentPage} de {numPages || '—'}
+      <div className="flex items-center gap-1.5 text-sm sm:gap-2">
+        <span aria-live="polite" className="whitespace-nowrap">
+          <span className="hidden sm:inline">
+            Página {currentPage} de {numPages || '—'}
+          </span>
+          <span className="sm:hidden">
+            {currentPage} / {numPages || '—'}
+          </span>
         </span>
         <Input
           type="number"
@@ -107,7 +112,7 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
           value={currentPage}
           onChange={onJumpChange}
           aria-label="Pular para página"
-          className="w-16 h-8"
+          className="h-8 w-14 sm:w-16"
         />
       </div>
       <Button
@@ -119,17 +124,18 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
       >
         <ChevronRight className="h-4 w-4" aria-hidden="true" />
       </Button>
-      <Separator orientation="vertical" className="h-6" />
+      <Separator orientation="vertical" className="hidden h-6 sm:block" />
       <Button
         variant="ghost"
         size="icon"
         aria-label="Diminuir zoom"
         disabled={zoom <= ZOOM_MIN}
         onClick={onZoomOut}
+        className="hidden sm:inline-flex"
       >
         <ZoomOut className="h-4 w-4" aria-hidden="true" />
       </Button>
-      <span className="font-mono text-xs w-12 text-center">
+      <span className="hidden w-12 text-center font-mono text-xs sm:inline">
         {Math.round(zoom * 100)}%
       </span>
       <Button
@@ -138,10 +144,11 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
         aria-label="Aumentar zoom"
         disabled={zoom >= ZOOM_MAX}
         onClick={onZoomIn}
+        className="hidden sm:inline-flex"
       >
         <ZoomIn className="h-4 w-4" aria-hidden="true" />
       </Button>
-      <Separator orientation="vertical" className="h-6" />
+      <Separator orientation="vertical" className="hidden h-6 sm:block" />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button

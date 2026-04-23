@@ -18,7 +18,7 @@
  *   D-14 pdfjs options: isEvalSupported:false, disableAutoFetch:true, verbosity:0
  *   D-15 vi.mock react-pdf + next/dynamic for unit tests (see *.test.tsx)
  */
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useAuth } from '@/lib/auth-context';
 import { ReaderToolbar, ZOOM_MIN, ZOOM_MAX, ZOOM_STEP } from '@/components/reader/reader-toolbar';
@@ -41,6 +41,8 @@ const Page = dynamic(
 
 const SAMPLE_LIMIT = 20; // D-02
 const BASE_WIDTH = 800;
+const MIN_PAGE_WIDTH = 280;
+const SIDE_GUTTER_PX = 8;
 
 // D-14 — passed to <Document options=...> to disable PDF JavaScript
 // (XSS hardening) and aggressive prefetch (memory hardening for mobile).
@@ -71,6 +73,26 @@ export function ReaderClient({ slug, bookName, version, pageCount }: ReaderClien
   const [dark, setDark] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const { bookmarks, toggle } = useBookmarks(slug, version);
+
+  // Phase 31 mobile fix: fit page to container width so the PDF never overflows
+  // the viewport. ResizeObserver keeps the width in sync across rotate/resize.
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState<number>(BASE_WIDTH);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => {
+      const w = Math.max(MIN_PAGE_WIDTH, el.clientWidth - SIDE_GUTTER_PX * 2);
+      setContainerWidth(w);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const pageWidth = Math.min(containerWidth, BASE_WIDTH) * zoom;
 
   const isAnon = !authLoading && !user;
   // D-12 (revised post Wave 0 audit): API hardcodes pageCount=null. Trust runtime
@@ -176,7 +198,10 @@ export function ReaderClient({ slug, bookName, version, pageCount }: ReaderClien
         width and needs horizontal centering. Paywall card and loadError div use
         natural block layout + their own mx-auto/text-center for alignment.
       */}
-      <main className="mx-auto max-w-5xl px-4 py-8">
+      <main
+        ref={containerRef}
+        className="mx-auto w-full max-w-5xl overflow-x-auto px-2 py-4 sm:px-4 sm:py-8"
+      >
         {loadError ? (
           <div className="text-center text-sm text-text-secondary">
             {loadError}
@@ -195,9 +220,14 @@ export function ReaderClient({ slug, bookName, version, pageCount }: ReaderClien
               onLoadSuccess={({ numPages: n }: { numPages: number }) => setNumPages(n)}
               onLoadError={() => setLoadError('Não foi possível carregar o PDF. Tente recarregar a página.')}
               options={PDF_OPTIONS}
-              loading={<Skeleton className="w-[800px] h-[1100px]" />}
+              loading={
+                <Skeleton
+                  className="h-[60vh] max-h-[1100px]"
+                  style={{ width: pageWidth }}
+                />
+              }
             >
-              <Page pageNumber={currentPage} width={BASE_WIDTH * zoom} />
+              <Page pageNumber={currentPage} width={pageWidth} />
             </Document>
           </div>
         )}
