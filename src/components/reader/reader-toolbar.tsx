@@ -16,7 +16,10 @@ import {
   BookmarkMinus,
   Moon,
   Sun,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -55,6 +58,8 @@ export interface ReaderToolbarProps {
   onDarkToggle: () => void;
   /** Toggle bookmark on the currently displayed page. */
   onBookmarkToggle: () => void;
+  /** Optional fullscreen toggle. When omitted, the button is not rendered. */
+  onToggleFullscreen?: () => void;
 }
 
 export function ReaderToolbar(props: ReaderToolbarProps) {
@@ -70,6 +75,7 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
     onZoomOut,
     onDarkToggle,
     onBookmarkToggle,
+    onToggleFullscreen,
   } = props;
 
   // D-06: effectiveMax is the upper bound for nav controls; numPages stays as
@@ -77,6 +83,15 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
   const effectiveMax = maxPage ?? numPages;
   const bookmarked = bookmarks.includes(currentPage);
   const bookmarkCount = bookmarks.length;
+
+  // Track fullscreen state for icon swap (Maximize2 ↔ Minimize2).
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
 
   const onJumpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = parseInt(e.target.value, 10);
@@ -131,11 +146,10 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
         aria-label="Diminuir zoom"
         disabled={zoom <= ZOOM_MIN}
         onClick={onZoomOut}
-        className="hidden sm:inline-flex"
       >
         <ZoomOut className="h-4 w-4" aria-hidden="true" />
       </Button>
-      <span className="hidden w-12 text-center font-mono text-xs sm:inline">
+      <span className="w-10 text-center font-mono text-xs sm:w-12">
         {Math.round(zoom * 100)}%
       </span>
       <Button
@@ -144,7 +158,6 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
         aria-label="Aumentar zoom"
         disabled={zoom >= ZOOM_MAX}
         onClick={onZoomIn}
-        className="hidden sm:inline-flex"
       >
         <ZoomIn className="h-4 w-4" aria-hidden="true" />
       </Button>
@@ -173,7 +186,10 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
             )}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[14rem]">
+        <DropdownMenuContent
+          align="end"
+          className="w-[14rem] border-zinc-800 bg-zinc-900 text-zinc-100 shadow-xl"
+        >
           <DropdownMenuLabel>Marcadores</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={onBookmarkToggle} className="gap-2">
@@ -230,6 +246,21 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
           <Moon className="h-4 w-4" aria-hidden="true" />
         )}
       </Button>
+      {onToggleFullscreen && (
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={isFullscreen ? 'Sair do modo tela cheia' : 'Modo tela cheia'}
+          aria-pressed={isFullscreen}
+          onClick={onToggleFullscreen}
+        >
+          {isFullscreen ? (
+            <Minimize2 className="h-4 w-4" aria-hidden="true" />
+          ) : (
+            <Maximize2 className="h-4 w-4" aria-hidden="true" />
+          )}
+        </Button>
+      )}
     </div>
   );
 }

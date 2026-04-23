@@ -187,6 +187,7 @@ export function ReaderClient({ slug, bookName, version, pageCount }: ReaderClien
         onZoomOut={onZoomOut}
         onDarkToggle={() => setDark((d) => !d)}
         onBookmarkToggle={() => toggle(currentPage)}
+        onToggleFullscreen={onToggleFullscreen}
       />
 
       {/*
