@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:install": "playwright install --with-deps chromium"
+    "test:e2e:install": "playwright install --with-deps chromium",
+    "postinstall": "node -e \"const fs=require('fs');const src=fs.existsSync('node_modules/pdfjs-dist/build/pdf.worker.mjs')?'node_modules/pdfjs-dist/build/pdf.worker.mjs':'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs';try{fs.copyFileSync(src,'public/pdf.worker.js');fs.copyFileSync(src,'public/pdf.worker.mjs')}catch(e){console.warn('pdf.worker not copied:',e.message)}\""
   },
   "dependencies": {
     "@kosmynapp/tokens": "^1.0.0",
@@ -23,9 +24,11 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.575.0",
     "next": "16.1.6",
+    "pdfjs-dist": "^5.6.205",
     "radix-ui": "^1.4.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-pdf": "^10.4.1",
     "semver": "^7.7.4",
     "tailwind-merge": "^3.5.0"
   },
