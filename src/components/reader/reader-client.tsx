@@ -96,31 +96,51 @@ export function ReaderClient({ slug, bookName, version, pageCount }: ReaderClien
 
   const pageWidth = Math.min(containerWidth, BASE_WIDTH) * zoom;
 
-  // Touch pinch-zoom on the canvas: reads two-finger distance, commits zoom
-  // continuously so users feel the page scaling in real time. preventDefault
-  // on touchmove stops iOS Safari from piggybacking page-level zoom.
+  // Touch pinch-zoom on the canvas. React synthetic handlers are passive by
+  // default, so preventDefault() there is a no-op in Safari. Attach the
+  // listeners manually with { passive: false } so we can actually block the
+  // page-level browser zoom. We also read zoom via a ref so the handler
+  // closure doesn't need to re-bind every state change.
+  const zoomRef = useRef(zoom);
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
   const pinchStartRef = useRef<{ dist: number; zoom: number } | null>(null);
-  const onTouchStart = useCallback(
-    (e: React.TouchEvent<HTMLDivElement>) => {
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const onStart = (e: TouchEvent) => {
       if (e.touches.length !== 2) return;
       const [t1, t2] = [e.touches[0], e.touches[1]];
       const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-      pinchStartRef.current = { dist, zoom };
-    },
-    [zoom],
-  );
-  const onTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    const start = pinchStartRef.current;
-    if (!start || e.touches.length !== 2) return;
-    e.preventDefault();
-    const [t1, t2] = [e.touches[0], e.touches[1]];
-    const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-    const factor = dist / start.dist;
-    const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, start.zoom * factor));
-    setZoom(Math.round(next * 20) / 20);
-  }, []);
-  const onTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.touches.length < 2) pinchStartRef.current = null;
+      pinchStartRef.current = { dist, zoom: zoomRef.current };
+    };
+    const onMove = (e: TouchEvent) => {
+      const start = pinchStartRef.current;
+      if (!start || e.touches.length !== 2) return;
+      e.preventDefault();
+      const [t1, t2] = [e.touches[0], e.touches[1]];
+      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      const factor = dist / start.dist;
+      const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, start.zoom * factor));
+      setZoom(Math.round(next * 20) / 20);
+    };
+    const onEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) pinchStartRef.current = null;
+    };
+
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchmove', onMove, { passive: false });
+    el.addEventListener('touchend', onEnd, { passive: true });
+    el.addEventListener('touchcancel', onEnd, { passive: true });
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+      el.removeEventListener('touchcancel', onEnd);
+    };
   }, []);
 
   const isAnon = !authLoading && !user;
@@ -241,10 +261,8 @@ export function ReaderClient({ slug, bookName, version, pageCount }: ReaderClien
       */}
       <main
         ref={containerRef}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-        className="mx-auto w-full max-w-5xl touch-pan-y overflow-x-auto px-2 py-4 sm:px-4 sm:py-8"
+        style={{ touchAction: 'pan-y pinch-zoom' }}
+        className="mx-auto w-full max-w-5xl overflow-x-auto px-2 py-4 sm:px-4 sm:py-8"
       >
         {loadError ? (
           <div className="text-center text-sm text-text-secondary">
