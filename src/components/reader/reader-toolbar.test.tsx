@@ -14,12 +14,12 @@ function defaultProps(overrides: Partial<React.ComponentProps<typeof ReaderToolb
     numPages: 200,
     zoom: 1,
     dark: true,
-    bookmarked: false,
+    bookmarks: [] as number[],
     onPageChange: vi.fn(),
     onZoomIn: vi.fn(),
     onZoomOut: vi.fn(),
     onDarkToggle: vi.fn(),
-    onBookmark: vi.fn(),
+    onBookmarkToggle: vi.fn(),
     ...overrides,
   };
 }
@@ -92,10 +92,17 @@ describe('ReaderToolbar (Phase 31 RDR-03)', () => {
     expect(onDarkToggle).toHaveBeenCalledTimes(1);
   });
 
-  it('Bookmark button shows aria-pressed=true when bookmarked', () => {
-    render(<ReaderToolbar {...defaultProps({ bookmarked: true })} />);
-    const btn = screen.getByRole('button', { name: /Remover marcador/ });
+  it('Bookmark trigger shows count badge + aria-pressed=true when current page is bookmarked', () => {
+    render(<ReaderToolbar {...defaultProps({ currentPage: 5, bookmarks: [3, 5, 12] })} />);
+    const btn = screen.getByRole('button', { name: /Marcadores \(3\)/ });
     expect(btn).toHaveAttribute('aria-pressed', 'true');
+    // count badge visible
+    expect(btn.querySelector('span')?.textContent).toBe('3');
+  });
+
+  it('Bookmark trigger label is "Marcadores (vazio)" when no bookmarks saved', () => {
+    render(<ReaderToolbar {...defaultProps({ bookmarks: [] })} />);
+    expect(screen.getByRole('button', { name: /Marcadores \(vazio\)/ })).toBeInTheDocument();
   });
 
   it('Zoom-in disabled at zoom===2.0; Zoom-out disabled at zoom===0.5', () => {

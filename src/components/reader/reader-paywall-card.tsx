@@ -26,7 +26,7 @@ export function ReaderPaywallCard({
 }: ReaderPaywallCardProps) {
   const redirect = `/book/${slug}/read`;
   return (
-    <Card className="mx-auto max-w-md p-8 text-center">
+    <Card className="mx-auto w-full max-w-md p-8 text-center">
       <Lock className="mx-auto h-10 w-10 text-text-secondary" aria-hidden="true" />
       <h2 className="mt-4 text-xl font-semibold">
         Você leu as primeiras {pagesShown} páginas. Faça login para continuar.

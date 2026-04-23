@@ -159,15 +159,24 @@ export function ReaderClient({ slug, bookName, version, pageCount }: ReaderClien
         maxPage={maxNavigablePage}
         zoom={zoom}
         dark={dark}
-        bookmarked={bookmarks.includes(currentPage)}
+        bookmarks={bookmarks}
         onPageChange={(p) => setCurrentPage(Math.max(1, Math.min(maxNavigablePage || p, p)))}
         onZoomIn={onZoomIn}
         onZoomOut={onZoomOut}
         onDarkToggle={() => setDark((d) => !d)}
-        onBookmark={() => toggle(currentPage)}
+        onBookmarkToggle={() => toggle(currentPage)}
       />
 
-      <main className="mx-auto max-w-5xl px-4 py-8 flex justify-center">
+      {/*
+        ROOT-CAUSE FIX (Phase 31 hotfix): the previous `<main className="... flex
+        justify-center">` collapsed any child without an explicit width to its
+        min-content (longest word) because Tailwind flex children default to
+        flex-shrink:1. Block layout is the safe default — only the Document
+        wrapper opts into flex centering since <Page width={px}> has fixed pixel
+        width and needs horizontal centering. Paywall card and loadError div use
+        natural block layout + their own mx-auto/text-center for alignment.
+      */}
+      <main className="mx-auto max-w-5xl px-4 py-8">
         {loadError ? (
           <div className="text-center text-sm text-text-secondary">
             {loadError}
@@ -180,15 +189,17 @@ export function ReaderClient({ slug, bookName, version, pageCount }: ReaderClien
             onResetToFirstPage={() => setCurrentPage(1)}
           />
         ) : (
-          <Document
-            file={fileUrl}
-            onLoadSuccess={({ numPages: n }: { numPages: number }) => setNumPages(n)}
-            onLoadError={() => setLoadError('Não foi possível carregar o PDF. Tente recarregar a página.')}
-            options={PDF_OPTIONS}
-            loading={<Skeleton className="w-[800px] h-[1100px]" />}
-          >
-            <Page pageNumber={currentPage} width={BASE_WIDTH * zoom} />
-          </Document>
+          <div className="flex justify-center">
+            <Document
+              file={fileUrl}
+              onLoadSuccess={({ numPages: n }: { numPages: number }) => setNumPages(n)}
+              onLoadError={() => setLoadError('Não foi possível carregar o PDF. Tente recarregar a página.')}
+              options={PDF_OPTIONS}
+              loading={<Skeleton className="w-[800px] h-[1100px]" />}
+            >
+              <Page pageNumber={currentPage} width={BASE_WIDTH * zoom} />
+            </Document>
+          </div>
         )}
       </main>
     </div>
