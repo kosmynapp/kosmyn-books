@@ -1,0 +1,87 @@
+name: E2E PDF Reader
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+  schedule:
+    # Daily at 06:30 UTC (03:30 BRT) — 30min after e2e-seo to avoid concurrency
+    # against the same prod baseURL. Catches react-pdf or pdfjs-dist drift
+    # introduced by silent dependency-floor updates.
+    - cron: '30 6 * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'src/app/book/[slug]/read/**'
+      - 'src/app/api/sample/**'
+      - 'src/components/reader/**'
+      - 'src/lib/reader/**'
+      - 'public/pdf.worker.js'
+      - 'public/pdf.worker.mjs'
+      - 'tests/e2e/reader.spec.ts'
+      - 'tests/e2e/sample-proxy.spec.ts'
+      - 'tests/e2e/fixtures/reader-fixture.ts'
+      - 'playwright.config.ts'
+      - 'package.json'
+
+concurrency:
+  group: e2e-reader
+  cancel-in-progress: true
+
+jobs:
+  e2e-reader:
+    name: PDF Reader E2E (real Chromium)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies (with postinstall worker copy)
+        run: npm ci --no-audit --no-fund
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Verify pdf.worker file present
+        run: |
+          test -f public/pdf.worker.js || (echo "pdf.worker.js missing — postinstall failed" && exit 1)
+          test -s public/pdf.worker.js || (echo "pdf.worker.js is empty" && exit 1)
+          ls -lh public/pdf.worker.js
+
+      - name: Install Playwright browsers (chromium only)
+        run: npx playwright install --with-deps chromium
+
+      - name: Run reader E2E spec (request-only assertions)
+        run: npx playwright test tests/e2e/reader.spec.ts tests/e2e/sample-proxy.spec.ts --reporter=list,html
+        env:
+          E2E_BASE_URL: ${{ github.event.inputs.environment == 'staging' && 'https://staging.books.kosmyn.com' || 'https://books.kosmyn.com' }}
+          CI: 'true'
+
+      - name: Run reader E2E spec (real Chromium pdfjs render — env-gated tests)
+        run: npx playwright test tests/e2e/reader.spec.ts --reporter=list,html
+        env:
+          E2E_BASE_URL: ${{ github.event.inputs.environment == 'staging' && 'https://staging.books.kosmyn.com' || 'https://books.kosmyn.com' }}
+          E2E_REAL_BROWSER: '1'
+          CI: 'true'
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-reader
+          path: playwright-report/
+          retention-days: 14
