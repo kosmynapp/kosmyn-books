@@ -1,5 +1,8 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { BookOpenText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { BookCover } from '@/components/books/book-cover';
 import { VersionBadge } from '@/components/books/version-badge';
@@ -103,6 +106,14 @@ export default async function BookPage({
           )}
 
           <div className="mt-8 flex flex-wrap gap-4">
+            {edition.pdfUrl && (
+              <Button asChild size="lg" variant="default">
+                <Link href={`/book/${book.slug}/read`}>
+                  <BookOpenText className="h-4 w-4" />
+                  Ler online
+                </Link>
+              </Button>
+            )}
             <DownloadButton
               slug={book.slug}
               format="pdf"
