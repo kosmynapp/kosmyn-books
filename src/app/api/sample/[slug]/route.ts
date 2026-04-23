@@ -76,13 +76,18 @@ export async function GET(
     // HEAD failure is non-blocking — proceed and let the GET surface real errors.
   }
 
-  // ── Hop 3: stream with Range passthrough ───────────────────────────
-  const range = request.headers.get('range') ?? undefined;
+  // ── Hop 3: stream the PDF (no Range passthrough) ───────────────────
+  // The upstream /books/download/:slug endpoint does NOT honor HTTP Range —
+  // it always streams the full PDF and returns HTTP 200 even when Range is
+  // sent. Advertising Accept-Ranges + serving 200 makes pdfjs throw
+  // ("expected 206, got 200") and surfaces as Document.onLoadError.
+  // Until upstream gains Range support, this proxy downloads the whole PDF
+  // in a single fetch and serves it without Accept-Ranges so pdfjs treats
+  // it as a non-streamable file (controlled client-side via disableRange:true
+  // in reader-client.tsx PDF_OPTIONS).
   try {
-    const upstream = await fetch(streamUrl, {
-      headers: range ? { Range: range } : {},
-    });
-    if (!upstream.ok && upstream.status !== 206) {
+    const upstream = await fetch(streamUrl);
+    if (!upstream.ok) {
       return NextResponse.json(
         { error: 'Upstream stream error' },
         { status: 502 },
@@ -93,15 +98,12 @@ export async function GET(
       'Content-Type': 'application/pdf',
       // Edition is immutable per Phase 25 BE-01 — long cache safe.
       'Cache-Control': 'public, max-age=86400, immutable',
-      'Accept-Ranges': 'bytes',
     };
     const cl = upstream.headers.get('content-length');
     if (cl) respHeaders['Content-Length'] = cl;
-    const cr = upstream.headers.get('content-range');
-    if (cr) respHeaders['Content-Range'] = cr;
 
     return new NextResponse(upstream.body, {
-      status: upstream.status,
+      status: 200,
       headers: respHeaders,
     });
   } catch {

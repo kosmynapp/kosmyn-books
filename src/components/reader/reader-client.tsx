@@ -44,10 +44,15 @@ const BASE_WIDTH = 800;
 
 // D-14 — passed to <Document options=...> to disable PDF JavaScript
 // (XSS hardening) and aggressive prefetch (memory hardening for mobile).
+// disableRange + disableStream forced TRUE: upstream /books/download
+// returns HTTP 200 even when Range is sent, which breaks pdfjs streaming
+// ("expected 206, got 200"). Until upstream gains Range support, the
+// proxy serves the full PDF in one shot and pdfjs parses it locally.
 const PDF_OPTIONS = Object.freeze({
   isEvalSupported: false,
   disableAutoFetch: true,
-  disableStream: false,
+  disableStream: true,
+  disableRange: true,
   verbosity: 0,
 });
 
