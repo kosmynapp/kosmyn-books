@@ -46,7 +46,7 @@ export function DownloadButton({
       <Button
         disabled
         size="lg"
-        variant={format === 'pdf' ? 'default' : 'outline'}
+        variant="outline"
       >
         <Loader2 className="h-4 w-4 animate-spin" />
         {label}
@@ -59,7 +59,7 @@ export function DownloadButton({
       <Button
         asChild
         size="lg"
-        variant={format === 'pdf' ? 'default' : 'outline'}
+        variant="outline"
       >
         <Link href={`/login?redirect=${encodeURIComponent(redirectPath)}`}>
           <Lock className="h-4 w-4" />
@@ -102,7 +102,7 @@ export function DownloadButton({
     <Button
       onClick={handleDownload}
       size="lg"
-      variant={format === 'pdf' ? 'default' : 'outline'}
+      variant="outline"
       disabled={loading || submitting}
     >
       {submitting ? (
