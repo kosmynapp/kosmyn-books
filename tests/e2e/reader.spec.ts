@@ -123,12 +123,14 @@ test.describe('PDF Reader (Phase 31 RDR-04)', () => {
       await expect(nextBtn).toBeDisabled();
     });
 
-    test('dark mode toggle changes wrapper background (D-07)', async ({ page }) => {
+    test('reader wrapper is dark-only and has no theme toggle button', async ({ page }) => {
       await page.goto(`/book/${READER_FIXTURE_SLUG}/read`);
       const wrapper = page.locator('[data-testid="reader-wrapper"]');
       await expect(wrapper).toHaveClass(/bg-zinc-950/, { timeout: 5_000 });
-      await page.getByRole('button', { name: /Alternar tema escuro/ }).click();
-      await expect(wrapper).toHaveClass(/bg-zinc-100/, { timeout: 2_000 });
+      // Product call (2026-04-23): reader is dark-only; no toggle button rendered.
+      await expect(
+        page.getByRole('button', { name: /Alternar tema escuro/ }),
+      ).toHaveCount(0);
     });
 
     test('bookmark click persists to localStorage and survives reload (D-08)', async ({

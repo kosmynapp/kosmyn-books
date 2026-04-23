@@ -13,12 +13,10 @@ function defaultProps(overrides: Partial<React.ComponentProps<typeof ReaderToolb
     currentPage: 1,
     numPages: 200,
     zoom: 1,
-    dark: true,
     bookmarks: [] as number[],
     onPageChange: vi.fn(),
     onZoomIn: vi.fn(),
     onZoomOut: vi.fn(),
-    onDarkToggle: vi.fn(),
     onBookmarkToggle: vi.fn(),
     ...overrides,
   };
@@ -83,13 +81,18 @@ describe('ReaderToolbar (Phase 31 RDR-03)', () => {
     expect(onPageChange).toHaveBeenCalledWith(21);
   });
 
-  it('Dark toggle has accessible name "Alternar tema escuro" and fires onDarkToggle', async () => {
-    const onDarkToggle = vi.fn();
+  it('Fullscreen button renders when onToggleFullscreen is supplied and fires on click', async () => {
+    const onToggleFullscreen = vi.fn();
     const user = userEvent.setup();
-    render(<ReaderToolbar {...defaultProps({ onDarkToggle })} />);
-    const btn = screen.getByRole('button', { name: /Alternar tema escuro/ });
+    render(<ReaderToolbar {...defaultProps({ onToggleFullscreen })} />);
+    const btn = screen.getByRole('button', { name: /Modo tela cheia/ });
     await user.click(btn);
-    expect(onDarkToggle).toHaveBeenCalledTimes(1);
+    expect(onToggleFullscreen).toHaveBeenCalledTimes(1);
+  });
+
+  it('Fullscreen button is not rendered when onToggleFullscreen prop is omitted', () => {
+    render(<ReaderToolbar {...defaultProps()} />);
+    expect(screen.queryByRole('button', { name: /Modo tela cheia/ })).toBeNull();
   });
 
   it('Bookmark trigger shows count badge + aria-pressed=true when current page is bookmarked', () => {

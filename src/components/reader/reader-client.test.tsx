@@ -184,14 +184,12 @@ describe('ReaderClient (Phase 31 RDR-01/02/03)', () => {
     expect(screen.queryByText(/Faça login para continuar/)).not.toBeInTheDocument();
   });
 
-  it('dark mode wrapper has bg-zinc-950 by default; toggle switches to bg-zinc-100', async () => {
-    const user = userEvent.setup();
+  it('reader wrapper is always dark (bg-zinc-950) — product call to match site theme', async () => {
     renderReader();
     const wrapper = await screen.findByTestId('reader-wrapper');
     expect(wrapper.className).toMatch(/bg-zinc-950/);
-    const darkBtn = screen.getByRole('button', { name: /Alternar tema escuro/ });
-    await user.click(darkBtn);
-    expect(wrapper.className).toMatch(/bg-zinc-100/);
+    // No dark-toggle button is rendered since the reader is dark-only.
+    expect(screen.queryByRole('button', { name: /Alternar tema escuro/ })).toBeNull();
   });
 
   it('Document.file prop equals /api/sample/<slug> (D-03 same-origin proxy)', async () => {

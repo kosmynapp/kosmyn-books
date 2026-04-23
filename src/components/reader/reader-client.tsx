@@ -70,8 +70,10 @@ export function ReaderClient({ slug, bookName, version, pageCount }: ReaderClien
   const [numPages, setNumPages] = useState<number>(pageCount ?? 0);
   const [currentPage, setCurrentPage] = useState(1);
   const [zoom, setZoom] = useState(1);
-  const [dark, setDark] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  // iPhone Safari has no requestFullscreen support — track a pseudo-fullscreen
+  // fallback where we pin the reader to the viewport via fixed inset-0.
+  const [pseudoFullscreen, setPseudoFullscreen] = useState(false);
   const { bookmarks, toggle } = useBookmarks(slug, version);
 
   // Phase 31 mobile fix: fit page to container width so the PDF never overflows
@@ -93,6 +95,33 @@ export function ReaderClient({ slug, bookName, version, pageCount }: ReaderClien
   }, []);
 
   const pageWidth = Math.min(containerWidth, BASE_WIDTH) * zoom;
+
+  // Touch pinch-zoom on the canvas: reads two-finger distance, commits zoom
+  // continuously so users feel the page scaling in real time. preventDefault
+  // on touchmove stops iOS Safari from piggybacking page-level zoom.
+  const pinchStartRef = useRef<{ dist: number; zoom: number } | null>(null);
+  const onTouchStart = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      if (e.touches.length !== 2) return;
+      const [t1, t2] = [e.touches[0], e.touches[1]];
+      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      pinchStartRef.current = { dist, zoom };
+    },
+    [zoom],
+  );
+  const onTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    const start = pinchStartRef.current;
+    if (!start || e.touches.length !== 2) return;
+    e.preventDefault();
+    const [t1, t2] = [e.touches[0], e.touches[1]];
+    const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+    const factor = dist / start.dist;
+    const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, start.zoom * factor));
+    setZoom(Math.round(next * 20) / 20);
+  }, []);
+  const onTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length < 2) pinchStartRef.current = null;
+  }, []);
 
   const isAnon = !authLoading && !user;
   // D-12 (revised post Wave 0 audit): API hardcodes pageCount=null. Trust runtime
@@ -147,12 +176,25 @@ export function ReaderClient({ slug, bookName, version, pageCount }: ReaderClien
   );
   const onToggleFullscreen = useCallback(() => {
     if (typeof document === 'undefined') return;
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen?.().catch(() => {
-        /* swallow — UX-only */
-      });
+    const doc = document as Document & {
+      webkitFullscreenElement?: Element;
+      webkitExitFullscreen?: () => Promise<void>;
+    };
+    const root = document.documentElement as HTMLElement & {
+      webkitRequestFullscreen?: () => Promise<void>;
+    };
+    const native =
+      doc.fullscreenElement ?? doc.webkitFullscreenElement ?? null;
+    if (native) {
+      (doc.exitFullscreen?.() ?? doc.webkitExitFullscreen?.())?.catch(() => {});
+      return;
+    }
+    const req = root.requestFullscreen?.bind(root) ?? root.webkitRequestFullscreen?.bind(root);
+    if (req) {
+      req().catch(() => setPseudoFullscreen((s) => !s));
     } else {
-      document.exitFullscreen?.().catch(() => {});
+      // iPhone Safari lane — no native fullscreen API, use the pseudo path.
+      setPseudoFullscreen((s) => !s);
     }
   }, []);
 
@@ -168,9 +210,9 @@ export function ReaderClient({ slug, bookName, version, pageCount }: ReaderClien
     <div
       data-testid="reader-wrapper"
       className={
-        dark
-          ? 'min-h-screen bg-zinc-950 text-zinc-100'
-          : 'min-h-screen bg-zinc-100 text-zinc-900'
+        pseudoFullscreen
+          ? 'fixed inset-0 z-50 overflow-auto bg-zinc-950 text-zinc-100'
+          : 'min-h-screen bg-zinc-950 text-zinc-100'
       }
     >
       <ReaderToolbar
@@ -180,12 +222,10 @@ export function ReaderClient({ slug, bookName, version, pageCount }: ReaderClien
         numPages={numPages}
         maxPage={maxNavigablePage}
         zoom={zoom}
-        dark={dark}
         bookmarks={bookmarks}
         onPageChange={(p) => setCurrentPage(Math.max(1, Math.min(maxNavigablePage || p, p)))}
         onZoomIn={onZoomIn}
         onZoomOut={onZoomOut}
-        onDarkToggle={() => setDark((d) => !d)}
         onBookmarkToggle={() => toggle(currentPage)}
         onToggleFullscreen={onToggleFullscreen}
       />
@@ -201,7 +241,10 @@ export function ReaderClient({ slug, bookName, version, pageCount }: ReaderClien
       */}
       <main
         ref={containerRef}
-        className="mx-auto w-full max-w-5xl overflow-x-auto px-2 py-4 sm:px-4 sm:py-8"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        className="mx-auto w-full max-w-5xl touch-pan-y overflow-x-auto px-2 py-4 sm:px-4 sm:py-8"
       >
         {loadError ? (
           <div className="text-center text-sm text-text-secondary">

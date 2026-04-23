@@ -2,9 +2,11 @@
 /**
  * Phase 31 Plan 02 — reader toolbar (D-09).
  *
- * Layout: [Prev] [Página X de N | jump-to-input] [Next] | [Zoom-out] [zoom%] [Zoom-in] | [Bookmark] [Dark]
- * All icon-only buttons carry explicit aria-label per accessibility best practice
- * (mirrors kosmyn-admin/.../preview-dialog.tsx:211-266 pattern).
+ * Layout (desktop): [Prev] [Página X de N | jump-to] [Next] | [ZoomOut] [%] [ZoomIn] | [Bookmark] [Fullscreen]
+ * Layout (mobile):   [Prev][X/N][input][Next][ZoomOut][ZoomIn][Bookmark][Fullscreen]
+ *                    (icons compacted + zoom% hidden + separators hidden to fit 1 row)
+ *
+ * Theme: reader is dark-only per product call (2026-04-23) — matches site theme.
  */
 import {
   ChevronLeft,
@@ -14,8 +16,6 @@ import {
   Bookmark,
   BookmarkPlus,
   BookmarkMinus,
-  Moon,
-  Sun,
   Maximize2,
   Minimize2,
 } from 'lucide-react';
@@ -49,13 +49,11 @@ export interface ReaderToolbarProps {
    */
   maxPage?: number;
   zoom: number;
-  dark: boolean;
   /** RDR-03 bookmarks — full list for navigation dropdown (D-08 localStorage-backed). */
   bookmarks: number[];
   onPageChange: (page: number) => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
-  onDarkToggle: () => void;
   /** Toggle bookmark on the currently displayed page. */
   onBookmarkToggle: () => void;
   /** Optional fullscreen toggle. When omitted, the button is not rendered. */
@@ -68,12 +66,10 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
     numPages,
     maxPage,
     zoom,
-    dark,
     bookmarks,
     onPageChange,
     onZoomIn,
     onZoomOut,
-    onDarkToggle,
     onBookmarkToggle,
     onToggleFullscreen,
   } = props;
@@ -88,9 +84,15 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    const doc = document as Document & { webkitFullscreenElement?: Element };
+    const onChange = () =>
+      setIsFullscreen(!!(doc.fullscreenElement ?? doc.webkitFullscreenElement));
     document.addEventListener('fullscreenchange', onChange);
-    return () => document.removeEventListener('fullscreenchange', onChange);
+    document.addEventListener('webkitfullscreenchange', onChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onChange);
+      document.removeEventListener('webkitfullscreenchange', onChange);
+    };
   }, []);
 
   const onJumpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,23 +103,24 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
   };
 
   return (
-    <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1.5 border-b border-border bg-background/80 px-2 py-2 backdrop-blur sm:gap-3 sm:px-4 sm:py-3">
+    <div className="sticky top-0 z-10 flex items-center gap-0.5 border-b border-border bg-background/80 px-1 py-2 backdrop-blur sm:gap-3 sm:px-4 sm:py-3">
       <Button
         variant="ghost"
         size="icon"
         aria-label="Página anterior"
         disabled={currentPage <= 1 || numPages === 0}
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+        className="size-8 sm:size-9"
       >
         <ChevronLeft className="h-4 w-4" aria-hidden="true" />
       </Button>
-      <div className="flex items-center gap-1.5 text-sm sm:gap-2">
+      <div className="flex items-center gap-1 text-xs sm:gap-2 sm:text-sm">
         <span aria-live="polite" className="whitespace-nowrap">
           <span className="hidden sm:inline">
             Página {currentPage} de {numPages || '—'}
           </span>
           <span className="sm:hidden">
-            {currentPage} / {numPages || '—'}
+            {currentPage}/{numPages || '—'}
           </span>
         </span>
         <Input
@@ -127,7 +130,7 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
           value={currentPage}
           onChange={onJumpChange}
           aria-label="Pular para página"
-          className="h-8 w-14 sm:w-16"
+          className="h-8 w-11 px-1 sm:w-16 sm:px-3"
         />
       </div>
       <Button
@@ -136,6 +139,7 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
         aria-label="Próxima página"
         disabled={currentPage >= effectiveMax || effectiveMax === 0}
         onClick={() => onPageChange(Math.min(effectiveMax || currentPage, currentPage + 1))}
+        className="size-8 sm:size-9"
       >
         <ChevronRight className="h-4 w-4" aria-hidden="true" />
       </Button>
@@ -146,10 +150,11 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
         aria-label="Diminuir zoom"
         disabled={zoom <= ZOOM_MIN}
         onClick={onZoomOut}
+        className="size-8 sm:size-9"
       >
         <ZoomOut className="h-4 w-4" aria-hidden="true" />
       </Button>
-      <span className="w-10 text-center font-mono text-xs sm:w-12">
+      <span className="hidden w-12 text-center font-mono text-xs sm:inline">
         {Math.round(zoom * 100)}%
       </span>
       <Button
@@ -158,6 +163,7 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
         aria-label="Aumentar zoom"
         disabled={zoom >= ZOOM_MAX}
         onClick={onZoomIn}
+        className="size-8 sm:size-9"
       >
         <ZoomIn className="h-4 w-4" aria-hidden="true" />
       </Button>
@@ -173,7 +179,7 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
                 : `Marcadores (${bookmarkCount})`
             }
             aria-pressed={bookmarked}
-            className="relative"
+            className="relative size-8 sm:size-9"
           >
             <Bookmark className="h-4 w-4" aria-hidden="true" />
             {bookmarkCount > 0 && (
@@ -234,18 +240,6 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
           )}
         </DropdownMenuContent>
       </DropdownMenu>
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label="Alternar tema escuro"
-        onClick={onDarkToggle}
-      >
-        {dark ? (
-          <Sun className="h-4 w-4" aria-hidden="true" />
-        ) : (
-          <Moon className="h-4 w-4" aria-hidden="true" />
-        )}
-      </Button>
       {onToggleFullscreen && (
         <Button
           variant="ghost"
@@ -253,6 +247,7 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
           aria-label={isFullscreen ? 'Sair do modo tela cheia' : 'Modo tela cheia'}
           aria-pressed={isFullscreen}
           onClick={onToggleFullscreen}
+          className="size-8 sm:size-9"
         >
           {isFullscreen ? (
             <Minimize2 className="h-4 w-4" aria-hidden="true" />
