@@ -25,8 +25,15 @@ export function ReaderPaywallCard({
   onResetToFirstPage,
 }: ReaderPaywallCardProps) {
   const redirect = `/book/${slug}/read`;
+  // max-w-[28rem] (arbitrary value) instead of `max-w-md` because
+  // @kosmynapp/tokens/tailwind-preset.css overrides .max-w-md to
+  // `max-width: var(--k-space-md)` (16px = spacing token), collapsing
+  // the card to 16px wide. The @theme inline override in globals.css does
+  // NOT win because the preset emits a hard-coded rule, not @theme-driven.
+  // Until the shared preset is fixed, all `max-w-{md,lg,xl,2xl}` and `w-{56,64}`
+  // Tailwind classes are unsafe in this repo — use arbitrary values explicitly.
   return (
-    <Card className="mx-auto w-full max-w-md p-8 text-center">
+    <Card className="mx-auto w-full max-w-[28rem] p-8 text-center">
       <Lock className="mx-auto h-10 w-10 text-text-secondary" aria-hidden="true" />
       <h2 className="mt-4 text-xl font-semibold">
         Você leu as primeiras {pagesShown} páginas. Faça login para continuar.

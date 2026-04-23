@@ -166,7 +166,7 @@ export function ReaderToolbar(props: ReaderToolbarProps) {
             )}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuContent align="end" className="w-[14rem]">
           <DropdownMenuLabel>Marcadores</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={onBookmarkToggle} className="gap-2">
