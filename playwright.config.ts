@@ -19,6 +19,12 @@ export default defineConfig({
     baseURL: process.env.E2E_BASE_URL ?? 'https://books.kosmyn.com',
     extraHTTPHeaders: {
       'User-Agent': 'KosmynSEOBot/1.0 (+https://books.kosmyn.com; e2e-seo.yml)',
+      // Cloudflare WAF bypass for GitHub Actions runners (Phase 31).
+      // Rule ID: 0edb483de5654345aa18de315834b84c on zone kosmyn.com.
+      // Empty string is safe (won't match rule) when running locally without secret.
+      ...(process.env.KOSMYN_CI_SECRET
+        ? { 'X-Kosmyn-CI': process.env.KOSMYN_CI_SECRET }
+        : {}),
     },
   },
 });
