@@ -9,7 +9,7 @@ import { VersionBadge } from '@/components/books/version-badge';
 import { EditionHistoryList } from '@/components/books/edition-history';
 import { DownloadButton } from '@/components/books/download-button';
 import { ReadingMeasure } from '@/components/typography/reading-measure';
-import { getBookBySlug, getBookPrograms } from '@/lib/api/books';
+import { getBookBySlug, getBookPrograms, getBookTaxonomyTerms } from '@/lib/api/books';
 
 export const revalidate = 3600;
 
@@ -73,7 +73,10 @@ export default async function BookPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const book = await getBookBySlug(slug);
+  const [book, taxonomy] = await Promise.all([
+    getBookBySlug(slug),
+    getBookTaxonomyTerms(slug),
+  ]);
   if (!book || !book.currentEdition) notFound();
 
   const edition = book.currentEdition;
@@ -196,6 +199,71 @@ export default async function BookPage({
             // LRMI educational extensions
             learningResourceType: 'Book',
             educationalUse: 'Reading',
+            // Phase 30 — taxonomy-derived LRMI fields (schema.org LearningResource)
+            ...(taxonomy?.level
+              ? {
+                  educationalLevel: {
+                    '@type': 'DefinedTerm',
+                    name: taxonomy.level.min === taxonomy.level.max
+                      ? taxonomy.level.min
+                      : `${taxonomy.level.min}–${taxonomy.level.max}`,
+                    inDefinedTermSet: 'https://books.kosmyn.com/taxonomy/level',
+                  },
+                }
+              : {}),
+            ...(taxonomy && (taxonomy.primarySubject || taxonomy.secondarySubjects.length > 0)
+              ? {
+                  teaches: [
+                    ...(taxonomy.primarySubject
+                      ? [
+                          {
+                            '@type': 'DefinedTerm',
+                            name: taxonomy.primarySubject.label,
+                            identifier: taxonomy.primarySubject.slug,
+                            inDefinedTermSet: 'https://books.kosmyn.com/taxonomy/subject',
+                          },
+                        ]
+                      : []),
+                    ...taxonomy.secondarySubjects.map((s) => ({
+                      '@type': 'DefinedTerm',
+                      name: s.label,
+                      identifier: s.slug,
+                      inDefinedTermSet: 'https://books.kosmyn.com/taxonomy/subject',
+                    })),
+                  ],
+                }
+              : {}),
+            ...(taxonomy && (taxonomy.primarySubject || taxonomy.careerTags.length > 0)
+              ? {
+                  about: [
+                    ...(taxonomy.primarySubject
+                      ? [
+                          {
+                            '@type': 'DefinedTerm',
+                            name: taxonomy.primarySubject.label,
+                            identifier: taxonomy.primarySubject.slug,
+                          },
+                        ]
+                      : []),
+                    ...taxonomy.careerTags.map((c) => ({
+                      '@type': 'DefinedTerm',
+                      name: c.label,
+                      identifier: c.slug,
+                      inDefinedTermSet: 'https://books.kosmyn.com/taxonomy/career',
+                    })),
+                  ],
+                }
+              : {}),
+            ...(taxonomy?.examTags && taxonomy.examTags.length > 0
+              ? {
+                  assesses: taxonomy.examTags.map((e) => ({
+                    '@type': 'DefinedTerm',
+                    name: e.label,
+                    identifier: e.slug,
+                    inDefinedTermSet: 'https://books.kosmyn.com/taxonomy/exam',
+                  })),
+                }
+              : {}),
           }),
         }}
       />

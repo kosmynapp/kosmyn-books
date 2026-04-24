@@ -101,6 +101,45 @@ export async function getBookBySlug(slug: string): Promise<LibraryProgram | null
   }
 }
 
+// Phase 30 — taxonomy classification data for a program (JSON-LD enrichment)
+export interface BookTaxonomyClassification {
+  primarySubject: { slug: string; label: string; path: string[] } | null;
+  secondarySubjects: { slug: string; label: string }[];
+  level: { min: string; max: string } | null;
+  audiences: { slug: string; label: string }[];
+  goals: { slug: string; label: string }[];
+  examTags: { slug: string; label: string }[];
+  careerTags: { slug: string; label: string }[];
+  competencyTags: { slug: string; label: string; bnccCode?: string }[];
+  formatTags: { slug: string; label: string }[];
+  series: { slug: string; label: string } | null;
+  universe: { slug: string; name: string; iconEmoji: string | null } | null;
+}
+
+/**
+ * Fetch taxonomy classification terms for a program (Phase 30 JSON-LD enrichment).
+ * Tags: [`book:${slug}:taxonomy`] — revalidated when classification changes.
+ * Returns null on error or if no classification data exists.
+ */
+export async function getBookTaxonomyTerms(
+  slug: string,
+): Promise<BookTaxonomyClassification | null> {
+  try {
+    const res = await fetch(
+      `${API_BASE}/books/programs/${encodeURIComponent(slug)}/taxonomy`,
+      {
+        next: { revalidate: 3600, tags: [`book:${slug}:taxonomy`] },
+        headers: { 'X-Tenant-Id': DEFAULT_TENANT_ID },
+      },
+    );
+    if (!res.ok) return null;
+    const data = (await res.json()) as { taxonomy: BookTaxonomyClassification };
+    return data.taxonomy;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Fetch a specific versioned edition (Plan 28-04 adds the backing endpoint).
  * Tags: [`book:${slug}:v${version}`] — per-version invalidation.
