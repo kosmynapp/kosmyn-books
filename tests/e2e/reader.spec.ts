@@ -141,8 +141,10 @@ test.describe('PDF Reader (Phase 31 RDR-04)', () => {
       test.setTimeout(90_000);
       await page.goto(`/book/${READER_FIXTURE_SLUG}/read`);
       await page.locator('[data-page-number="1"]').waitFor({ timeout: 30_000 });
-      // Click the bookmark button on page 1
-      await page.getByRole('button', { name: /Marcar página/ }).click();
+      // Bookmark UI is a dropdown: first open the Marcadores trigger, then
+      // select the "Marcar página N" menu item.
+      await page.getByRole('button', { name: /Marcadores/ }).click();
+      await page.getByRole('menuitem', { name: /Marcar página/ }).click();
       // Verify localStorage was written
       const stored = await page.evaluate(() => {
         // Find any kosmyn:reader key (we don't know the exact version)
@@ -151,11 +153,21 @@ test.describe('PDF Reader (Phase 31 RDR-04)', () => {
       });
       expect(stored, 'bookmark must be stored in localStorage').not.toBeNull();
       expect(JSON.parse(stored as string), 'bookmark array must contain page 1').toContain(1);
-      // Reload and verify the button reflects pressed state
+      // Reload and verify the bookmark toggle reflects the pressed state.
+      // The trigger keeps the `Marcadores` label; aria-pressed flips to true
+      // and the dropdown exposes a "Remover marcador" menuitem for page 1.
       await page.reload();
       await page.locator('[data-page-number="1"]').waitFor({ timeout: 30_000 });
-      const btn = page.getByRole('button', { name: /Remover marcador/ });
-      await expect(btn, 'after reload, bookmark must show as pressed').toBeVisible();
+      const trigger = page.getByRole('button', { name: /Marcadores/ });
+      await expect(trigger, 'bookmark trigger must be aria-pressed after reload').toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      await trigger.click();
+      await expect(
+        page.getByRole('menuitem', { name: /Remover marcador/ }),
+        'dropdown must expose Remover marcador menuitem for bookmarked page',
+      ).toBeVisible();
     });
   });
 });
