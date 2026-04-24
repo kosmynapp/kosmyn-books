@@ -136,8 +136,11 @@ test.describe('PDF Reader (Phase 31 RDR-04)', () => {
     test('bookmark click persists to localStorage and survives reload (D-08)', async ({
       page,
     }) => {
+      // PDF.js initial render + reload render + bookmark DOM updates can
+      // collectively exceed the default 30s test timeout on cold CI runners.
+      test.setTimeout(90_000);
       await page.goto(`/book/${READER_FIXTURE_SLUG}/read`);
-      await page.locator('[data-page-number="1"]').waitFor({ timeout: 20_000 });
+      await page.locator('[data-page-number="1"]').waitFor({ timeout: 30_000 });
       // Click the bookmark button on page 1
       await page.getByRole('button', { name: /Marcar página/ }).click();
       // Verify localStorage was written
@@ -150,7 +153,7 @@ test.describe('PDF Reader (Phase 31 RDR-04)', () => {
       expect(JSON.parse(stored as string), 'bookmark array must contain page 1').toContain(1);
       // Reload and verify the button reflects pressed state
       await page.reload();
-      await page.locator('[data-page-number="1"]').waitFor({ timeout: 20_000 });
+      await page.locator('[data-page-number="1"]').waitFor({ timeout: 30_000 });
       const btn = page.getByRole('button', { name: /Remover marcador/ });
       await expect(btn, 'after reload, bookmark must show as pressed').toBeVisible();
     });
