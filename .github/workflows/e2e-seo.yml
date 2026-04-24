@@ -56,6 +56,7 @@ jobs:
         run: npx playwright test --reporter=list,html
         env:
           E2E_BASE_URL: ${{ github.event.inputs.environment == 'staging' && 'https://staging.books.kosmyn.com' || 'https://books.kosmyn.com' }}
+          KOSMYN_CI_SECRET: ${{ secrets.KOSMYN_CI_SECRET }}
           CI: 'true'
 
       - name: Upload Playwright report

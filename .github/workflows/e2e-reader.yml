@@ -69,12 +69,14 @@ jobs:
         run: npx playwright test tests/e2e/reader.spec.ts tests/e2e/sample-proxy.spec.ts --reporter=list,html
         env:
           E2E_BASE_URL: ${{ github.event.inputs.environment == 'staging' && 'https://staging.books.kosmyn.com' || 'https://books.kosmyn.com' }}
+          KOSMYN_CI_SECRET: ${{ secrets.KOSMYN_CI_SECRET }}
           CI: 'true'
 
       - name: Run reader E2E spec (real Chromium pdfjs render — env-gated tests)
         run: npx playwright test tests/e2e/reader.spec.ts --reporter=list,html
         env:
           E2E_BASE_URL: ${{ github.event.inputs.environment == 'staging' && 'https://staging.books.kosmyn.com' || 'https://books.kosmyn.com' }}
+          KOSMYN_CI_SECRET: ${{ secrets.KOSMYN_CI_SECRET }}
           E2E_REAL_BROWSER: '1'
           CI: 'true'
 
