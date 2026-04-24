@@ -52,6 +52,30 @@ jobs:
       - name: Install Playwright browsers (chromium only)
         run: npx playwright install --with-deps chromium
 
+      - name: Bypass Cloudflare via /etc/hosts override
+        # CF Free plan BIC/DDoS challenge Azure runner IPs even with the WAF
+        # skip rule; skip rule sits in the custom rules phase which runs after
+        # BIC/DDoS. Route books.kosmyn.com to the Railway edge IP directly.
+        # CF flattens proxied records at the DNS layer, so query the CF DNS
+        # Records API for the real CNAME.
+        env:
+          CF_DNS_READ_TOKEN: ${{ secrets.CF_DNS_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          ZONE_ID="f1e0cc001fe5c634ffb58f6b3b75bc7a"
+          HOST="books.kosmyn.com"
+          CNAME=$(curl -sf -H "Authorization: Bearer $CF_DNS_READ_TOKEN" \
+            "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?name=$HOST" \
+            | python3 -c "import json,sys; d=json.load(sys.stdin); print(next((r['content'] for r in (d.get('result') or []) if r.get('type')=='CNAME'),''))")
+          echo "CNAME=$CNAME"
+          [ -z "$CNAME" ] && { echo "Failed to fetch CNAME via CF API" >&2; exit 1; }
+          IP=$(getent hosts "$CNAME" | awk '{print $1}' | head -1)
+          echo "IP=$IP"
+          [ -z "$IP" ] && { echo "Failed to resolve $CNAME" >&2; exit 1; }
+          echo "$IP $HOST" | sudo tee -a /etc/hosts
+          getent hosts "$HOST"
+          curl -sI "https://$HOST/" -o /dev/null -w "direct=%{http_code}\n"
+
       - name: Run SEO E2E spec
         run: npx playwright test --reporter=list,html
         env:
