@@ -12,6 +12,6 @@ export const KNOWN_PUBLIC_TENANTS = ['kosmyn', 'languages'] as const;
 
 // Update this tuple if production data changes. CI fails when the slug 404s.
 export const SAMPLE_TENANT_SCOPED_BOOK = {
-  tenantSlug: 'languages',
-  slug: 'english-riff',
+  tenantSlug: 'kosmyn',
+  slug: 'estacao-de-descobertas',
 } as const;
