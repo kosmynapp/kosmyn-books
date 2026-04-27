@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import { BookOpenText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,12 @@ import { VersionBadge } from '@/components/books/version-badge';
 import { EditionHistoryList } from '@/components/books/edition-history';
 import { DownloadButton } from '@/components/books/download-button';
 import { ReadingMeasure } from '@/components/typography/reading-measure';
-import { getBookBySlug, getBookPrograms, getBookTaxonomyTerms } from '@/lib/api/books';
+import {
+  getBookBySlug,
+  getBookPrograms,
+  getBookTaxonomyTerms,
+  getPublicCrossTenantPrograms,
+} from '@/lib/api/books';
 
 export const revalidate = 3600;
 
@@ -73,6 +78,32 @@ export default async function BookPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+
+  // Phase 45 D-11/D-12: Detect slug collision across tenants. When the same
+  // slug exists in 2+ public tenants, redirect to the tenant-scoped permalink
+  // /[tenantSlug]/book/[slug] (302). Single match falls through to the canonical
+  // single-tenant render below.
+  //
+  // Perf assumption: getPublicCrossTenantPrograms() uses cache: 'no-store' (D-10).
+  // Within a single Next.js render, the React fetch dedupe guarantees only ONE
+  // upstream call per request even if other components also call this function.
+  // Across requests, the upstream platform service sends Cache-Control max-age=300
+  // (D-7), so Cloudflare/CDN edges cache the JSON for 5min. Net: at most one
+  // upstream call per 5min per edge POP — acceptable for collision detection.
+  //
+  // DO NOT cache the result here (e.g. via React.cache or module-level memo).
+  // The admin /api/revalidate hook (Plan 45-04) busts the edge cache on flip;
+  // a local cache layer would defeat that and leave stale data after toggles.
+  const allPublic = await getPublicCrossTenantPrograms();
+  const matches = allPublic.filter((p) => p.slug === slug);
+  if (matches.length > 1) {
+    // Choose the FIRST matching tenant (alphabetic by tenantSlug — server orders
+    // by tenant.slug ASC) and redirect there. Other tenants get explicit URLs
+    // via /[tenantSlug]/book/[slug] from the sitemap.
+    const target = matches[0];
+    redirect(`/${target.tenantSlug}/book/${slug}`);
+  }
+
   const [book, taxonomy] = await Promise.all([
     getBookBySlug(slug),
     getBookTaxonomyTerms(slug),
