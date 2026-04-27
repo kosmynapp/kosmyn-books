@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SERVER_API_BASE } from '@/lib/server-api-base';
+import { getPublicCrossTenantPrograms } from '@/lib/api/books';
 
 /**
  * Phase 31 Plan 02 — same-origin PDF sample proxy (D-03).
@@ -32,13 +33,24 @@ export async function GET(
 ) {
   const { slug } = await params;
 
+  // Phase 45: resolve the program's tenantId so samples work for any public
+  // tenant. Falls back to DEFAULT_TENANT_ID when slug is not in the catalog.
+  let tenantIdHeader = DEFAULT_TENANT_ID;
+  try {
+    const all = await getPublicCrossTenantPrograms();
+    const match = all.find((p) => p.slug === slug);
+    if (match?.tenantId) tenantIdHeader = match.tenantId;
+  } catch {
+    // keep DEFAULT_TENANT_ID fallback
+  }
+
   // ── Hop 1: mint anonymous sample-scoped token ──────────────────────
   const sampleUrlEndpoint = `${API_BASE}/books/sample/${encodeURIComponent(slug)}`;
   let downloadToken: string;
 
   try {
     const res = await fetch(sampleUrlEndpoint, {
-      headers: { 'X-Tenant-Id': DEFAULT_TENANT_ID },
+      headers: { 'X-Tenant-Id': tenantIdHeader },
     });
     if (res.status === 404) {
       return NextResponse.json({ error: 'Book not available' }, { status: 404 });

@@ -1,10 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SERVER_API_BASE } from '@/lib/server-api-base';
+import { getPublicCrossTenantPrograms } from '@/lib/api/books';
 
 const API_BASE = SERVER_API_BASE;
 const DEFAULT_TENANT_ID = process.env.DEFAULT_TENANT_ID ?? 'default';
 
 export const dynamic = 'force-dynamic';
+
+/**
+ * Phase 45: resolve the program's tenantId via the cross-tenant catalog so
+ * downloads work for any public tenant (kosmyn, languages, medicina, …).
+ * Falls back to DEFAULT_TENANT_ID when the slug is not in the catalog
+ * (preserves legacy behaviour for kosmyn-only deployments).
+ */
+async function resolveTenantId(slug: string): Promise<string> {
+  try {
+    const all = await getPublicCrossTenantPrograms();
+    const match = all.find((p) => p.slug === slug);
+    return match?.tenantId ?? DEFAULT_TENANT_ID;
+  } catch {
+    return DEFAULT_TENANT_ID;
+  }
+}
 
 /**
  * Server-side download proxy. Two-hop flow (matches kosmyn-site):
@@ -41,6 +58,8 @@ export async function GET(
     );
   }
 
+  const tenantIdHeader = await resolveTenantId(slug);
+
   // ── Hop 1: mint a short-lived download token ───────────────────────────
   const signedUrlEndpoint = `${API_BASE}/books/book/${encodeURIComponent(slug)}/signed-url?format=${encodeURIComponent(format)}`;
   let downloadToken: string;
@@ -50,7 +69,7 @@ export async function GET(
     const res = await fetch(signedUrlEndpoint, {
       headers: {
         Authorization: `Bearer ${jwt}`,
-        'X-Tenant-Id': DEFAULT_TENANT_ID,
+        'X-Tenant-Id': tenantIdHeader,
       },
     });
 
@@ -100,7 +119,7 @@ export async function GET(
   try {
     const upstream = await fetch(streamUrl, {
       headers: {
-        'X-Tenant-Id': DEFAULT_TENANT_ID,
+        'X-Tenant-Id': tenantIdHeader,
       },
     });
 
