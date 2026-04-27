@@ -5,7 +5,7 @@
 // - Taxonomy routes (/subject/*, /level/*, /exam/*, /career/*) — v1.5 Phase 37
 
 import type { MetadataRoute } from 'next';
-import { getBookPrograms } from '@/lib/api/books';
+import { getPublicCrossTenantPrograms } from '@/lib/api/books';
 import { getTaxonomyFamily } from '@/lib/api/taxonomy';
 
 const BASE_URL = 'https://books.kosmyn.com';
@@ -20,8 +20,11 @@ export const revalidate = 3600;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
+  // Phase 45 — switched from getBookPrograms() (single-tenant via DEFAULT_TENANT_ID)
+  // to getPublicCrossTenantPrograms() (cross-tenant aggregator) so the sitemap
+  // surfaces books from ALL tenants with publicLibrary=true.
   const [books, subjects, levels, exams, careers] = await Promise.all([
-    getBookPrograms().catch(() => []),
+    getPublicCrossTenantPrograms().catch(() => []),
     getTaxonomyFamily('subject').catch(() => []),
     getTaxonomyFamily('level').catch(() => []),
     getTaxonomyFamily('exam').catch(() => []),
@@ -49,6 +52,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: b.currentEdition?.publishedAt ? new Date(b.currentEdition.publishedAt) : now,
     changeFrequency: 'weekly',
     priority: 0.8,
+  }));
+
+  // Phase 45 D-13: Tenant-scoped permalinks for slug-collision disambiguation.
+  // /book/[slug] redirects (302) when 2+ tenants share a slug; the tenant-scoped
+  // permalink at /[tenantSlug]/book/[slug] is the indexable form.
+  // Emitted for ALL public-library books (not only collisions) so search engines
+  // see a stable canonical URL even when only one tenant currently has the slug.
+  const tenantBookRoutes: MetadataRoute.Sitemap = books.map((b) => ({
+    url: `${BASE_URL}/${b.tenantSlug}/book/${b.slug}`,
+    lastModified: b.currentEdition?.publishedAt ? new Date(b.currentEdition.publishedAt) : now,
+    changeFrequency: 'weekly',
+    priority: 0.7, // slightly lower than /book/[slug] (0.8) — disambiguation form
   }));
 
   // Collections (per-tenant community page)
@@ -103,6 +118,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...staticRoutes,
     ...bookRoutes,
+    ...tenantBookRoutes,
     ...collectionRoutes,
     ...subjectRoutes,
     ...levelRoutes,
