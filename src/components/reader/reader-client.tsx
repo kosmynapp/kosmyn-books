@@ -94,6 +94,21 @@ export function ReaderClient({ slug, bookName, version, pageCount }: ReaderClien
     return () => ro.disconnect();
   }, []);
 
+  // Fit-to-height: track viewport height so the default render shows the full
+  // page without vertical scroll. Toolbar + top brand header take ~64+60px;
+  // py-8 of <main> adds 64px more. Reserve ~210px for chrome + breathing room.
+  // The user can zoom in to scroll; pinch-zoom on touch already works.
+  const VIEWPORT_CHROME_PX = 210;
+  const [viewportHeight, setViewportHeight] = useState<number>(900);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const update = () => setViewportHeight(window.innerHeight);
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  const pageHeight = Math.max(420, viewportHeight - VIEWPORT_CHROME_PX) * zoom;
+  // Cap width to container so wide PDFs scale down on narrow screens.
   const pageWidth = Math.min(containerWidth, BASE_WIDTH) * zoom;
 
   // Touch pinch-zoom on the canvas. React synthetic handlers are passive by
@@ -284,12 +299,15 @@ export function ReaderClient({ slug, bookName, version, pageCount }: ReaderClien
               options={PDF_OPTIONS}
               loading={
                 <Skeleton
-                  className="h-[60vh] max-h-[1100px]"
-                  style={{ width: pageWidth }}
+                  style={{ height: pageHeight, width: pageWidth }}
                 />
               }
             >
-              <Page pageNumber={currentPage} width={pageWidth} />
+              {/* Fit-to-height by default. react-pdf prefers width when both are set,
+                  so we pass height-only and let the renderer compute width from the
+                  page's intrinsic aspect ratio. Container has overflow-x-auto for the
+                  rare case the page is wider than the viewport at full height. */}
+              <Page pageNumber={currentPage} height={pageHeight} />
             </Document>
           </div>
         )}
