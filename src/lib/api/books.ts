@@ -77,6 +77,51 @@ export async function getBookPrograms(
 }
 
 /**
+ * Phase 45 — Cross-tenant public catalog.
+ * Calls the new aggregator endpoint at /api/v1/public/library/programs (canonical
+ * URL shipped by Plan 45-02). Replaces the legacy N×getBookPrograms() loop and
+ * the hardcoded `['default', 'languages']` whitelist on the client side.
+ *
+ * Server returns programs from ALL tenants with publicLibrary=true and a
+ * PUBLISHED currentEdition. tenantSlug is populated for /[tenantSlug]/book/[slug]
+ * collision routing.
+ *
+ * Cache strategy (per D-10):
+ *   - SSR fetch: `cache: 'no-store'` — Next.js layer does NOT cache.
+ *   - Edge: respects upstream Cache-Control: public, max-age=300, stale-while-revalidate=60 (D-7).
+ *   - Admin flip: kosmyn-books /api/revalidate is hit by the platform admin
+ *     handler (Plan 45-04) on every flip → busts edge + relevant tags.
+ *
+ * URL: API_BASE = SERVER_API_BASE = 'https://api.kosmyn.com/api/v1' (verified
+ * at kosmyn-books/src/lib/server-api-base.ts) → final URL is
+ * https://api.kosmyn.com/api/v1/public/library/programs.
+ *
+ * Server-side feature flag `crossTenantPublicLibrary` gates the new code path
+ * (Redis kill-switch `ff:global:cross-tenant-public-library`):
+ *   - ON  → full catalog from Tenant.publicLibrary column (any tenant)
+ *   - OFF → server returns the legacy whitelist (zero-regression fallback)
+ *
+ * Client always calls the same URL — FF resolution is server-side. Fail-soft
+ * to [] on error (matches getBookPrograms convention).
+ */
+export async function getPublicCrossTenantPrograms(): Promise<LibraryProgram[]> {
+  try {
+    const res = await fetch(`${API_BASE}/public/library/programs`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      console.error(`[books-api] getPublicCrossTenantPrograms failed: ${res.status}`);
+      return [];
+    }
+    const data = (await res.json()) as { programs: LibraryProgram[] };
+    return (data.programs ?? []).filter((p) => p.currentEdition?.status === 'PUBLISHED');
+  } catch (err) {
+    console.error('[books-api] getPublicCrossTenantPrograms error:', err);
+    return [];
+  }
+}
+
+/**
  * Fetch a single program by slug (current edition).
  * Tags: [`book:${slug}`] — revalidate on publish event for this specific book.
  */
