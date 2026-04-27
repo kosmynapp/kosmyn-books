@@ -124,14 +124,34 @@ export async function getPublicCrossTenantPrograms(): Promise<LibraryProgram[]> 
 /**
  * Fetch a single program by slug (current edition).
  * Tags: [`book:${slug}`] — revalidate on publish event for this specific book.
+ *
+ * Phase 45: tenant-aware. Resolves the program's tenantId via the cross-tenant
+ * public catalog before fetching, so books from any public tenant (kosmyn,
+ * languages, medicina, …) load with the correct X-Tenant-Id header. The catalog
+ * call is CDN-cached (5min TTL via Cache-Control on the public endpoint), so
+ * the extra hop is amortized to ~1 upstream call per 5min per edge POP.
+ *
+ * If the slug exists in 2+ public tenants (collision), prefer the explicit
+ * `tenantSlug` arg if provided; otherwise pick the first match (alphabetical
+ * by tenant slug per server ordering).
  */
-export async function getBookBySlug(slug: string): Promise<LibraryProgram | null> {
+export async function getBookBySlug(
+  slug: string,
+  tenantSlug?: string,
+): Promise<LibraryProgram | null> {
   try {
+    let tenantIdHeader = DEFAULT_TENANT_ID;
+    const allPublic = await getPublicCrossTenantPrograms().catch(() => [] as LibraryProgram[]);
+    const match = tenantSlug
+      ? allPublic.find((p) => p.slug === slug && p.tenantSlug === tenantSlug)
+      : allPublic.find((p) => p.slug === slug);
+    if (match?.tenantId) tenantIdHeader = match.tenantId;
+
     const res = await fetch(
       `${API_BASE}/books/programs/${encodeURIComponent(slug)}`,
       {
         next: { revalidate: 3600, tags: [`book:${slug}`] },
-        headers: { 'X-Tenant-Id': DEFAULT_TENANT_ID },
+        headers: { 'X-Tenant-Id': tenantIdHeader },
       },
     );
     if (res.status === 404) return null;
