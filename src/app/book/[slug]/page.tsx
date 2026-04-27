@@ -96,12 +96,17 @@ export default async function BookPage({
   // a local cache layer would defeat that and leave stale data after toggles.
   const allPublic = await getPublicCrossTenantPrograms();
   const matches = allPublic.filter((p) => p.slug === slug);
-  if (matches.length > 1) {
-    // Choose the FIRST matching tenant (alphabetic by tenantSlug — server orders
-    // by tenant.slug ASC) and redirect there. Other tenants get explicit URLs
-    // via /[tenantSlug]/book/[slug] from the sitemap.
+  // Phase 45 fix: redirect to /[tenantSlug]/book/[slug] when the book lives in
+  // a non-default tenant OR collides across 2+ tenants. /book/[slug] without
+  // tenant prefix only resolves canonically for the default tenant (kosmyn),
+  // since getBookBySlug() hardcodes X-Tenant-Id: DEFAULT_TENANT_ID.
+  if (matches.length > 0) {
     const target = matches[0];
-    redirect(`/${target.tenantSlug}/book/${slug}`);
+    const isCollision = matches.length > 1;
+    const isNonDefault = target.tenantSlug !== 'kosmyn';
+    if (isCollision || isNonDefault) {
+      redirect(`/${target.tenantSlug}/book/${slug}`);
+    }
   }
 
   const [book, taxonomy] = await Promise.all([

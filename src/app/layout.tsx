@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Nunito } from 'next/font/google';
 import { fetchPublicFlag } from '@/lib/feature-flags';
-import { getBookPrograms } from '@/lib/api/books';
+import { getPublicCrossTenantPrograms } from '@/lib/api/books';
 import { ComingSoonLanding } from '@/components/layout/coming-soon';
 import { SiteHeader } from '@/components/layout/site-header';
 import { SiteFooter } from '@/components/layout/site-footer';
@@ -35,8 +35,9 @@ export const metadata: Metadata = {
 };
 
 async function computeTeaserCount(): Promise<{ books: number; communities: number }> {
+  // Phase 45 fix: aggregate across all public tenants, not only the default one.
   try {
-    const programs = await getBookPrograms();
+    const programs = await getPublicCrossTenantPrograms();
     const communities = new Set(programs.map((p) => p.tenantId)).size;
     return { books: programs.length, communities };
   } catch {

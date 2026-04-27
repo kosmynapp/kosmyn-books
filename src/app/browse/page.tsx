@@ -1,4 +1,4 @@
-import { getBookPrograms } from '@/lib/api/books';
+import { getPublicCrossTenantPrograms } from '@/lib/api/books';
 import { getTaxonomyFamily } from '@/lib/api/taxonomy';
 import { BrowseExplorer } from '@/components/books/browse-explorer';
 import { TaxonomySidebar } from '@/components/books/taxonomy-sidebar';
@@ -6,9 +6,12 @@ import { TaxonomySidebar } from '@/components/books/taxonomy-sidebar';
 export const revalidate = 3600;
 
 export default async function BrowsePage() {
+  // Phase 45 fix: switched from getBookPrograms() (single-tenant via DEFAULT_TENANT_ID)
+  // to getPublicCrossTenantPrograms() so /browse surfaces ALL public tenants
+  // (kosmyn + languages today; medicina/etc when admin opts them in).
   const [programs, subjects, levels, exams, careers, formats, audiences] =
     await Promise.all([
-      getBookPrograms(),
+      getPublicCrossTenantPrograms(),
       getTaxonomyFamily('subject'),
       getTaxonomyFamily('level'),
       getTaxonomyFamily('exam'),

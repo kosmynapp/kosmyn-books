@@ -1,15 +1,15 @@
 import { notFound } from 'next/navigation';
 import { BookCard } from '@/components/books/book-card';
-import { getBookPrograms } from '@/lib/api/books';
+import { getPublicCrossTenantPrograms } from '@/lib/api/books';
 
 export const revalidate = 3600;
 
 /**
- * Prebuild known tenant slugs (RESEARCH Q1 resolved 2026-04-21 via prod DB):
- * only 'kosmyn' (18 books) and 'languages' (5 books) currently publish.
+ * Phase 45: collection routes prebuilt for known public tenants. Add new
+ * slugs here when admin opts them in via Tenant.publicLibrary.
  */
 export async function generateStaticParams() {
-  return [{ tenantSlug: 'kosmyn' }, { tenantSlug: 'languages' }];
+  return [{ tenantSlug: 'kosmyn' }, { tenantSlug: 'languages' }, { tenantSlug: 'medicina' }];
 }
 
 export default async function CollectionPage({
@@ -18,7 +18,10 @@ export default async function CollectionPage({
   params: Promise<{ tenantSlug: string }>;
 }) {
   const { tenantSlug } = await params;
-  const allPrograms = await getBookPrograms();
+  // Phase 45 fix: switched from getBookPrograms() (single-tenant default)
+  // to getPublicCrossTenantPrograms() so collection pages render any public
+  // tenant's catalog, not only kosmyn's.
+  const allPrograms = await getPublicCrossTenantPrograms();
   const filtered = allPrograms.filter((p) => p.tenantSlug === tenantSlug);
 
   if (filtered.length === 0) notFound();
