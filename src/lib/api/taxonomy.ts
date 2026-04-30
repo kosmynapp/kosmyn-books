@@ -46,6 +46,31 @@ export async function getTaxonomyFamily(
   }
 }
 
+export interface TaxonomyTermWithCount extends TaxonomyTerm {
+  programCount: number;
+}
+
+/**
+ * Public taxonomy with usage counts — used by the sidebar to show only terms
+ * that have at least one published book in the public catalog. Subjects roll
+ * up hierarchically; levels match by min/max range overlap. Empty array on error.
+ */
+export async function getPublicTaxonomyFamily(
+  family: TaxonomyFamily,
+): Promise<TaxonomyTermWithCount[]> {
+  try {
+    const res = await fetch(
+      `${SERVER_API_BASE}/public/library/taxonomy?family=${family}`,
+      { next: { revalidate: 300, tags: [`taxonomy:public:${family}`] } },
+    );
+    if (!res.ok) return [];
+    const data = (await res.json()) as { terms: TaxonomyTermWithCount[] };
+    return data.terms;
+  } catch {
+    return [];
+  }
+}
+
 export async function getSubjectNode(slug: string): Promise<{
   term: TaxonomyTerm;
   children: TaxonomyTerm[];

@@ -1,5 +1,5 @@
 import { getPublicCrossTenantPrograms } from '@/lib/api/books';
-import { getTaxonomyFamily } from '@/lib/api/taxonomy';
+import { getPublicTaxonomyFamily } from '@/lib/api/taxonomy';
 import { BrowseExplorer } from '@/components/books/browse-explorer';
 import { TaxonomySidebar } from '@/components/books/taxonomy-sidebar';
 
@@ -9,20 +9,23 @@ export default async function BrowsePage() {
   // Phase 45 fix: switched from getBookPrograms() (single-tenant via DEFAULT_TENANT_ID)
   // to getPublicCrossTenantPrograms() so /browse surfaces ALL public tenants
   // (kosmyn + languages today; medicina/etc when admin opts them in).
+  // Taxonomy via public-library endpoint — only terms with programCount > 0 surface.
   const [programs, subjects, levels, exams, careers, formats, audiences] =
     await Promise.all([
       getPublicCrossTenantPrograms(),
-      getTaxonomyFamily('subject'),
-      getTaxonomyFamily('level'),
-      getTaxonomyFamily('exam'),
-      getTaxonomyFamily('career'),
-      getTaxonomyFamily('format'),
-      getTaxonomyFamily('audience'),
+      getPublicTaxonomyFamily('subject'),
+      getPublicTaxonomyFamily('level'),
+      getPublicTaxonomyFamily('exam'),
+      getPublicTaxonomyFamily('career'),
+      getPublicTaxonomyFamily('format'),
+      getPublicTaxonomyFamily('audience'),
     ]);
 
-  // Top-level subjects only (depth=0) for sidebar
+  const hasBooks = (t: { programCount: number }) => t.programCount > 0;
+
+  // Top-level subjects only (depth=0), filtered to those with books
   const topDomains = subjects
-    .filter((t) => t.depth === 0)
+    .filter((t) => t.depth === 0 && hasBooks(t))
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
   if (programs.length === 0) {
@@ -52,29 +55,29 @@ export default async function BrowsePage() {
     },
     {
       title: 'Por nível',
-      terms: levels,
+      terms: levels.filter(hasBooks),
       hrefPrefix: '/level',
     },
     {
       title: 'Preparatórios para exames',
-      terms: exams,
+      terms: exams.filter(hasBooks),
       hrefPrefix: '/exam',
       limit: 12,
     },
     {
       title: 'Por carreira',
-      terms: careers,
+      terms: careers.filter(hasBooks),
       hrefPrefix: '/career',
       limit: 10,
     },
     {
       title: 'Por formato',
-      terms: formats,
+      terms: formats.filter(hasBooks),
       hrefPrefix: '/browse/format',
     },
     {
       title: 'Por audiência',
-      terms: audiences,
+      terms: audiences.filter(hasBooks),
       hrefPrefix: '/browse/audience',
     },
   ];

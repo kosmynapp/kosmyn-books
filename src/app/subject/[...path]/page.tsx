@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getProgramsByFacets, getSubjectNode, getTaxonomyFamily } from '@/lib/api/taxonomy';
+import { getProgramsByFacets, getSubjectNode, getPublicTaxonomyFamily } from '@/lib/api/taxonomy';
 import { BookCard } from '@/components/books/book-card';
 import { TaxonomySidebar } from '@/components/books/taxonomy-sidebar';
 
@@ -27,28 +27,30 @@ export default async function SubjectPage({ params }: Props) {
   const [node, programs, levels, exams, careers] = await Promise.all([
     getSubjectNode(leaf),
     getProgramsByFacets({ subject: leaf }),
-    getTaxonomyFamily('level'),
-    getTaxonomyFamily('exam'),
-    getTaxonomyFamily('career'),
+    getPublicTaxonomyFamily('level'),
+    getPublicTaxonomyFamily('exam'),
+    getPublicTaxonomyFamily('career'),
   ]);
 
   if (!node) notFound();
 
+  const hasBooks = (t: { programCount: number }) => t.programCount > 0;
+
   const sidebarSections = [
     {
       title: 'Por nível',
-      terms: levels,
+      terms: levels.filter(hasBooks),
       hrefPrefix: '/level',
     },
     {
       title: 'Preparatórios',
-      terms: exams,
+      terms: exams.filter(hasBooks),
       hrefPrefix: '/exam',
       limit: 10,
     },
     {
       title: 'Por carreira',
-      terms: careers,
+      terms: careers.filter(hasBooks),
       hrefPrefix: '/career',
       limit: 8,
     },

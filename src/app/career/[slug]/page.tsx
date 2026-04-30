@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getProgramsByFacets, getTaxonomyFamily } from '@/lib/api/taxonomy';
+import { getProgramsByFacets, getTaxonomyFamily, getPublicTaxonomyFamily } from '@/lib/api/taxonomy';
 import { BookCard } from '@/components/books/book-card';
 import { TaxonomySidebar } from '@/components/books/taxonomy-sidebar';
 
@@ -29,18 +29,20 @@ export default async function CareerPage({ params }: Props) {
   const { slug } = await params;
 
   const [careers, subjects, levels, exams, programs] = await Promise.all([
-    getTaxonomyFamily('career'),
-    getTaxonomyFamily('subject'),
-    getTaxonomyFamily('level'),
-    getTaxonomyFamily('exam'),
+    getPublicTaxonomyFamily('career'),
+    getPublicTaxonomyFamily('subject'),
+    getPublicTaxonomyFamily('level'),
+    getPublicTaxonomyFamily('exam'),
     getProgramsByFacets({ career: slug }),
   ]);
 
   const term = careers.find((t) => t.slug === slug);
   if (!term) notFound();
 
+  const hasBooks = (t: { programCount: number }) => t.programCount > 0;
+
   const topSubjects = subjects
-    .filter((t) => t.depth === 0)
+    .filter((t) => t.depth === 0 && hasBooks(t))
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
   const sidebarSections = [
@@ -51,18 +53,18 @@ export default async function CareerPage({ params }: Props) {
     },
     {
       title: 'Por nível',
-      terms: levels,
+      terms: levels.filter(hasBooks),
       hrefPrefix: '/level',
     },
     {
       title: 'Preparatórios',
-      terms: exams,
+      terms: exams.filter(hasBooks),
       hrefPrefix: '/exam',
       limit: 10,
     },
     {
       title: 'Outras carreiras',
-      terms: careers.filter((t) => t.slug !== slug),
+      terms: careers.filter((t) => t.slug !== slug && hasBooks(t)),
       hrefPrefix: '/career',
       limit: 10,
     },
