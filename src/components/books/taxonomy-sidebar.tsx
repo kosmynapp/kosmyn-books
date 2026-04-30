@@ -52,15 +52,16 @@ function SidebarLink({
   active?: boolean;
 }) {
   const indent = depth ? depth * 12 : 0;
+  const basePadLeft = indent > 0 ? `${indent + 14}px` : '14px';
   return (
     <Link
       href={href}
-      style={{ paddingLeft: indent > 0 ? `${indent + 12}px` : undefined }}
+      style={{ paddingLeft: basePadLeft }}
       className={[
-        'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors',
+        'flex items-center gap-1.5 rounded-md pr-3 py-1.5 text-sm transition-colors border-l-2',
         active
-          ? 'bg-primary/10 text-primary font-medium'
-          : 'text-text-secondary hover:bg-muted hover:text-text-primary',
+          ? 'bg-primary/15 text-primary font-semibold border-primary'
+          : 'text-text-secondary border-transparent hover:bg-muted hover:text-text-primary',
       ].join(' ')}
     >
       {icon && <span className="shrink-0">{icon}</span>}
@@ -151,7 +152,7 @@ export function TaxonomySidebar({
                         className={[
                           'flex items-center gap-1 rounded-full px-2.5 py-1 text-xs transition-colors',
                           term.slug === activeSlug
-                            ? 'bg-primary/10 text-primary font-medium'
+                            ? 'bg-primary/15 text-primary font-semibold ring-1 ring-primary/40'
                             : 'bg-surface hover:bg-muted text-text-secondary',
                         ].join(' ')}
                       >

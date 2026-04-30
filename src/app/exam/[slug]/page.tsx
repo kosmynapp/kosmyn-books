@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getProgramsByFacets, getTaxonomyFamily, getPublicTaxonomyFamily } from '@/lib/api/taxonomy';
+import { getProgramsByFacets, getTaxonomyFamily } from '@/lib/api/taxonomy';
 import { BookCard } from '@/components/books/book-card';
 import { TaxonomySidebar } from '@/components/books/taxonomy-sidebar';
+import { buildStandardSidebar } from '@/lib/sidebar';
 
 export const revalidate = 3600;
 
@@ -28,47 +29,14 @@ export async function generateMetadata({ params }: Props) {
 export default async function ExamPage({ params }: Props) {
   const { slug } = await params;
 
-  const [exams, subjects, levels, careers, programs] = await Promise.all([
-    getPublicTaxonomyFamily('exam'),
-    getPublicTaxonomyFamily('subject'),
-    getPublicTaxonomyFamily('level'),
-    getPublicTaxonomyFamily('career'),
+  const [{ sections }, programs] = await Promise.all([
+    buildStandardSidebar(),
     getProgramsByFacets({ exam: slug }),
   ]);
 
-  const term = exams.find((t) => t.slug === slug);
+  const examSection = sections.find((s) => s.hrefPrefix === '/exam');
+  const term = examSection?.terms.find((t) => t.slug === slug);
   if (!term) notFound();
-
-  const hasBooks = (t: { programCount: number }) => t.programCount > 0;
-
-  const topSubjects = subjects
-    .filter((t) => t.depth === 0 && hasBooks(t))
-    .sort((a, b) => a.sortOrder - b.sortOrder);
-
-  const sidebarSections = [
-    {
-      title: 'Áreas de conhecimento',
-      terms: topSubjects,
-      hrefPrefix: '/subject',
-    },
-    {
-      title: 'Por nível',
-      terms: levels.filter(hasBooks),
-      hrefPrefix: '/level',
-    },
-    {
-      title: 'Outros preparatórios',
-      terms: exams.filter((t) => t.slug !== slug && hasBooks(t)),
-      hrefPrefix: '/exam',
-      limit: 10,
-    },
-    {
-      title: 'Por carreira',
-      terms: careers.filter(hasBooks),
-      hrefPrefix: '/career',
-      limit: 8,
-    },
-  ];
 
   const emptyRecovery = programs.length === 0 ? '/browse' : undefined;
 
@@ -88,16 +56,16 @@ export default async function ExamPage({ params }: Props) {
 
       {/* Mobile filter strip */}
       <TaxonomySidebar
-        sections={sidebarSections}
+        sections={sections}
         activeSlug={slug}
         emptyRecoveryHref={emptyRecovery}
         mobileOnly
       />
 
       <div className="flex gap-8">
-        {/* Desktop cross-facet sidebar */}
+        {/* Desktop sidebar */}
         <TaxonomySidebar
-          sections={sidebarSections}
+          sections={sections}
           activeSlug={slug}
           emptyRecoveryHref={emptyRecovery}
           desktopOnly

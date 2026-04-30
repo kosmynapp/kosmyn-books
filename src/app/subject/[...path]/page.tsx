@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getProgramsByFacets, getSubjectNode, getPublicTaxonomyFamily } from '@/lib/api/taxonomy';
+import { getProgramsByFacets, getSubjectNode } from '@/lib/api/taxonomy';
 import { BookCard } from '@/components/books/book-card';
 import { TaxonomySidebar } from '@/components/books/taxonomy-sidebar';
+import { buildStandardSidebar, resolveSubjectTopDomain } from '@/lib/sidebar';
 
 export const revalidate = 3600;
 
@@ -24,45 +25,24 @@ export default async function SubjectPage({ params }: Props) {
   const { path } = await params;
   const leaf = path[path.length - 1];
 
-  const [node, programs, levels, exams, careers, allSubjects] = await Promise.all([
+  const [node, programs, { sections, subjects }] = await Promise.all([
     getSubjectNode(leaf),
     getProgramsByFacets({ subject: leaf }),
-    getPublicTaxonomyFamily('level'),
-    getPublicTaxonomyFamily('exam'),
-    getPublicTaxonomyFamily('career'),
-    getPublicTaxonomyFamily('subject'),
+    buildStandardSidebar(),
   ]);
 
   if (!node) notFound();
 
-  const hasBooks = (t: { programCount: number }) => t.programCount > 0;
+  // Highlight the top-domain in the sidebar even when navigating deep paths
+  // (e.g. /subject/exatas/matematica → "Ciências Exatas" stays selected).
+  const activeSlug = resolveSubjectTopDomain(leaf, subjects);
 
   // Sub-areas: only show child terms that have at least one published book
   // (counted hierarchically by getPublicTaxonomyWithCounts).
-  const subjectCountBySlug = new Map(allSubjects.map((s) => [s.slug, s.programCount]));
+  const subjectCountBySlug = new Map(subjects.map((s) => [s.slug, s.programCount]));
   const visibleChildren = node.children.filter(
     (c) => (subjectCountBySlug.get(c.slug) ?? 0) > 0,
   );
-
-  const sidebarSections = [
-    {
-      title: 'Por nível',
-      terms: levels.filter(hasBooks),
-      hrefPrefix: '/level',
-    },
-    {
-      title: 'Preparatórios',
-      terms: exams.filter(hasBooks),
-      hrefPrefix: '/exam',
-      limit: 10,
-    },
-    {
-      title: 'Por carreira',
-      terms: careers.filter(hasBooks),
-      hrefPrefix: '/career',
-      limit: 8,
-    },
-  ];
 
   const emptyRecovery = programs.length === 0 ? '/browse' : undefined;
 
@@ -101,15 +81,17 @@ export default async function SubjectPage({ params }: Props) {
 
       {/* Mobile filter strip */}
       <TaxonomySidebar
-        sections={sidebarSections}
+        sections={sections}
+        activeSlug={activeSlug}
         emptyRecoveryHref={emptyRecovery}
         mobileOnly
       />
 
       <div className="flex gap-8">
-        {/* Desktop cross-facet sidebar */}
+        {/* Desktop sidebar */}
         <TaxonomySidebar
-          sections={sidebarSections}
+          sections={sections}
+          activeSlug={activeSlug}
           emptyRecoveryHref={emptyRecovery}
           desktopOnly
         />

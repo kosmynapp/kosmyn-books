@@ -1,7 +1,7 @@
 import { getPublicCrossTenantPrograms } from '@/lib/api/books';
-import { getPublicTaxonomyFamily } from '@/lib/api/taxonomy';
 import { BrowseExplorer } from '@/components/books/browse-explorer';
 import { TaxonomySidebar } from '@/components/books/taxonomy-sidebar';
+import { buildStandardSidebar } from '@/lib/sidebar';
 
 export const revalidate = 3600;
 
@@ -9,24 +9,10 @@ export default async function BrowsePage() {
   // Phase 45 fix: switched from getBookPrograms() (single-tenant via DEFAULT_TENANT_ID)
   // to getPublicCrossTenantPrograms() so /browse surfaces ALL public tenants
   // (kosmyn + languages today; medicina/etc when admin opts them in).
-  // Taxonomy via public-library endpoint — only terms with programCount > 0 surface.
-  const [programs, subjects, levels, exams, careers, formats, audiences] =
-    await Promise.all([
-      getPublicCrossTenantPrograms(),
-      getPublicTaxonomyFamily('subject'),
-      getPublicTaxonomyFamily('level'),
-      getPublicTaxonomyFamily('exam'),
-      getPublicTaxonomyFamily('career'),
-      getPublicTaxonomyFamily('format'),
-      getPublicTaxonomyFamily('audience'),
-    ]);
-
-  const hasBooks = (t: { programCount: number }) => t.programCount > 0;
-
-  // Top-level subjects only (depth=0), filtered to those with books
-  const topDomains = subjects
-    .filter((t) => t.depth === 0 && hasBooks(t))
-    .sort((a, b) => a.sortOrder - b.sortOrder);
+  const [programs, { sections: sidebarSections }] = await Promise.all([
+    getPublicCrossTenantPrograms(),
+    buildStandardSidebar(),
+  ]);
 
   if (programs.length === 0) {
     return (
@@ -45,42 +31,6 @@ export default async function BrowsePage() {
       </main>
     );
   }
-
-  const sidebarSections = [
-    {
-      title: 'Áreas de conhecimento',
-      terms: topDomains,
-      hrefPrefix: '/subject',
-      hierarchical: false as const,
-    },
-    {
-      title: 'Por nível',
-      terms: levels.filter(hasBooks),
-      hrefPrefix: '/level',
-    },
-    {
-      title: 'Preparatórios para exames',
-      terms: exams.filter(hasBooks),
-      hrefPrefix: '/exam',
-      limit: 12,
-    },
-    {
-      title: 'Por carreira',
-      terms: careers.filter(hasBooks),
-      hrefPrefix: '/career',
-      limit: 10,
-    },
-    {
-      title: 'Por formato',
-      terms: formats.filter(hasBooks),
-      hrefPrefix: '/browse/format',
-    },
-    {
-      title: 'Por audiência',
-      terms: audiences.filter(hasBooks),
-      hrefPrefix: '/browse/audience',
-    },
-  ];
 
   return (
     <main className="container mx-auto max-w-7xl px-4 py-12">
