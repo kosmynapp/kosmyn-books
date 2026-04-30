@@ -45,12 +45,21 @@ export default async function ReaderPage({
   if (!book?.currentEdition?.pdfUrl) notFound();
 
   const edition = book.currentEdition;
+  // Extract cache-buster from coverUrl (admin upload cosmetic rebuild adds ?t=ts).
+  // Used as `?v=${version}-${buildId}` query in /api/sample to bust Railway CDN
+  // cache after PDF regeneration. Sem isso, sample endpoint serve PDF antigo
+  // cacheado por 24h (max-age) até expirar naturalmente.
+  const buildId = (() => {
+    const m = (book.coverUrl ?? '').match(/[?&]t=(\d+)/);
+    return m?.[1] ?? '';
+  })();
   return (
     <ReaderLoader
       slug={book.slug}
       bookName={book.name}
       version={edition.version}
       pageCount={edition.pageCount}
+      buildId={buildId}
     />
   );
 }

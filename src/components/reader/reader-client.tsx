@@ -63,9 +63,10 @@ export interface ReaderClientProps {
   bookName: string;
   version: string;
   pageCount: number | null;
+  buildId?: string;
 }
 
-export function ReaderClient({ slug, bookName, version, pageCount }: ReaderClientProps) {
+export function ReaderClient({ slug, bookName, version, pageCount, buildId }: ReaderClientProps) {
   const { user, loading: authLoading } = useAuth();
   const [numPages, setNumPages] = useState<number>(pageCount ?? 0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -191,7 +192,12 @@ export function ReaderClient({ slug, bookName, version, pageCount }: ReaderClien
   const showPaywall = isAnon && currentPage > SAMPLE_LIMIT;
 
   // D-03: same-origin proxy for both anon AND auth (one path keeps the reader simple).
-  const fileUrl = `/api/sample/${encodeURIComponent(slug)}`;
+  // Include version + buildId as query param to bust Railway CDN cache after
+  // cosmetic rebuild (admin "Regenerar PDF/EPUB" sobrescreve PDF da MESMA versão
+  // em R2 — sem buster, CDN serve PDF antigo por max-age=86400 até expirar).
+  // buildId vem do timestamp embedded em coverUrl (admin upload cosmetic adiciona ?t=ts).
+  const cacheBuster = buildId ? `${version}-${buildId}` : version;
+  const fileUrl = `/api/sample/${encodeURIComponent(slug)}?v=${encodeURIComponent(cacheBuster)}`;
 
   const onPrev = useCallback(
     () => setCurrentPage((p) => Math.max(1, p - 1)),

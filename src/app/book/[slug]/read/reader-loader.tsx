@@ -27,6 +27,7 @@ export interface ReaderLoaderProps {
   bookName: string;
   version: string;
   pageCount: number | null;
+  buildId?: string;
 }
 
 export function ReaderLoader(props: ReaderLoaderProps) {
