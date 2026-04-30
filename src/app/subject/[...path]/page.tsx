@@ -24,17 +24,25 @@ export default async function SubjectPage({ params }: Props) {
   const { path } = await params;
   const leaf = path[path.length - 1];
 
-  const [node, programs, levels, exams, careers] = await Promise.all([
+  const [node, programs, levels, exams, careers, allSubjects] = await Promise.all([
     getSubjectNode(leaf),
     getProgramsByFacets({ subject: leaf }),
     getPublicTaxonomyFamily('level'),
     getPublicTaxonomyFamily('exam'),
     getPublicTaxonomyFamily('career'),
+    getPublicTaxonomyFamily('subject'),
   ]);
 
   if (!node) notFound();
 
   const hasBooks = (t: { programCount: number }) => t.programCount > 0;
+
+  // Sub-areas: only show child terms that have at least one published book
+  // (counted hierarchically by getPublicTaxonomyWithCounts).
+  const subjectCountBySlug = new Map(allSubjects.map((s) => [s.slug, s.programCount]));
+  const visibleChildren = node.children.filter(
+    (c) => (subjectCountBySlug.get(c.slug) ?? 0) > 0,
+  );
 
   const sidebarSections = [
     {
@@ -107,13 +115,13 @@ export default async function SubjectPage({ params }: Props) {
         />
 
         <div className="min-w-0 flex-1">
-          {node.children.length > 0 && (
+          {visibleChildren.length > 0 && (
             <section className="mb-10">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-text-secondary mb-3">
                 Sub-áreas
               </h2>
               <div className="flex flex-wrap gap-2">
-                {node.children.map((child) => (
+                {visibleChildren.map((child) => (
                   <Link
                     key={child.slug}
                     href={`/subject/${[...path, child.slug].join('/')}`}
