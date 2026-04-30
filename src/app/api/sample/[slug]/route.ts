@@ -108,8 +108,11 @@ export async function GET(
 
     const respHeaders: Record<string, string> = {
       'Content-Type': 'application/pdf',
-      // Edition is immutable per Phase 25 BE-01 — long cache safe.
-      'Cache-Control': 'public, max-age=86400, immutable',
+      // Edições NÃO são mais imutáveis — cosmetic rebuild (admin "Regenerar
+      // PDF/EPUB") sobrescreve PDF da MESMA versão em R2. `immutable` antigo
+      // travava CDN por 24h e fazia capa nova não aparecer no /read.
+      // Cache curto + must-revalidate para CDN re-buscar do origin frequentemente.
+      'Cache-Control': 'public, max-age=60, s-maxage=60, must-revalidate',
     };
     const cl = upstream.headers.get('content-length');
     if (cl) respHeaders['Content-Length'] = cl;
