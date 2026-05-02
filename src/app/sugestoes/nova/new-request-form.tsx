@@ -35,7 +35,7 @@ export function NewRequestForm() {
         <div className="mt-4 flex gap-3">
           <Link
             href="/login?redirect=/sugestoes/nova"
-            className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-bg hover:bg-amber-300"
+            className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-black hover:bg-amber-300"
           >
             Entrar
           </Link>
@@ -85,9 +85,11 @@ export function NewRequestForm() {
 
       switch (result.type) {
         case 'created':
-          setSuccess('Sugestão enviada! Obrigado.');
+          setSuccess(
+            'Sugestão recebida! Vamos revisar antes de exibir publicamente — você pode acompanhar em "Minhas em revisão".',
+          );
           // Brief pause so user sees the toast, then route to list
-          setTimeout(() => router.push('/sugestoes?tab=new'), 800);
+          setTimeout(() => router.push('/sugestoes?tab=mine'), 1500);
           break;
         case 'similar_found':
           setSimilar(result.similar);
@@ -245,7 +247,7 @@ export function NewRequestForm() {
         <button
           type="submit"
           disabled={busy}
-          className="rounded-lg bg-amber-400 px-5 py-2.5 text-sm font-semibold text-bg disabled:opacity-50 hover:bg-amber-300"
+          className="rounded-lg bg-amber-400 px-5 py-2.5 text-sm font-semibold text-black disabled:opacity-50 hover:bg-amber-300"
         >
           {busy ? 'Enviando…' : 'Enviar sugestão'}
         </button>

@@ -5,6 +5,7 @@ import { type ContentRequest, statusLabel } from '@/lib/api/content-requests';
 import { VoteButton } from './vote-button';
 
 const STATUS_CLASSES: Record<ContentRequest['status'], string> = {
+  pending_review: 'border-amber-400/40 bg-amber-400/10 text-amber-300',
   open: 'border-blue-400/40 bg-blue-400/10 text-blue-300',
   planned: 'border-violet-400/40 bg-violet-400/10 text-violet-300',
   in_production: 'border-amber-400/40 bg-amber-400/10 text-amber-300',

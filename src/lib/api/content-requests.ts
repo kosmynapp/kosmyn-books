@@ -12,6 +12,7 @@ const DEFAULT_TENANT_ID =
   process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID ?? 'default';
 
 export type ContentRequestStatus =
+  | 'pending_review'
   | 'open'
   | 'planned'
   | 'in_production'
@@ -197,6 +198,7 @@ export async function deleteContentRequest(
 }
 
 const STATUS_LABELS_PT: Record<ContentRequestStatus, string> = {
+  pending_review: 'Em revisão',
   open: 'Aberto',
   planned: 'Planejado',
   in_production: 'Em produção',

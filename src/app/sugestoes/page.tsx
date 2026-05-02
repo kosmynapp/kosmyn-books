@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { listContentRequests, type ContentRequestStatus } from '@/lib/api/content-requests';
 import { RequestsList } from './requests-list';
+import { MyPendingSuggestions } from './my-pending';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,7 +45,7 @@ export default async function SugestoesPage({ searchParams }: PageProps) {
           </div>
           <Link
             href="/sugestoes/nova"
-            className="inline-flex items-center gap-2 rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-semibold text-bg shadow-sm transition-colors hover:bg-amber-300"
+            className="inline-flex items-center gap-2 rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-semibold text-black shadow-sm transition-colors hover:bg-amber-300"
           >
             <span aria-hidden>＋</span>
             Sugerir conteúdo
@@ -76,6 +77,8 @@ export default async function SugestoesPage({ searchParams }: PageProps) {
           );
         })}
       </nav>
+
+      <MyPendingSuggestions />
 
       <Suspense fallback={<div className="py-12 text-center text-text-secondary">Carregando…</div>}>
         <RequestsList initialRequests={result.requests} />

@@ -18,7 +18,7 @@ export function RequestsList({ initialRequests }: Props) {
         </p>
         <Link
           href="/sugestoes/nova"
-          className="mt-4 inline-flex items-center gap-2 rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-semibold text-bg hover:bg-amber-300"
+          className="mt-4 inline-flex items-center gap-2 rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-semibold text-black hover:bg-amber-300"
         >
           Sugerir conteúdo
         </Link>
