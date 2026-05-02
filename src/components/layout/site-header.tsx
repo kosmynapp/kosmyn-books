@@ -26,6 +26,9 @@ export function SiteHeader() {
           <Link href="/browse" className="text-sm text-text-secondary hover:text-text-primary">
             Explorar
           </Link>
+          <Link href="/sugestoes" className="text-sm text-text-secondary hover:text-text-primary">
+            Sugestões
+          </Link>
           <Link
             href="https://kosmyn.com"
             className="text-sm text-text-secondary hover:text-text-primary"
