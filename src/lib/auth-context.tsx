@@ -24,6 +24,7 @@ interface AuthContextType {
   error: string | null;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: (googleIdToken: string) => Promise<void>;
+  signUp: (email: string, password: string, displayName: string) => Promise<{ verificationRequired: boolean }>;
   signOut: () => Promise<void>;
 }
 
@@ -196,13 +197,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function signUp(email: string, password: string, displayName: string) {
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, displayName, source: 'books-web' }),
+      });
+
+      const data = await res.json().catch(() => ({} as Record<string, unknown>));
+
+      if (!res.ok) {
+        const errCode = (data as { error?: string }).error || 'Falha ao criar conta';
+        const friendly: Record<string, string> = {
+          INVITE_REQUIRED: 'Cadastros públicos estão desativados no momento.',
+          'Email already registered': 'Este e-mail já está cadastrado. Faça login.',
+        };
+        throw new Error(friendly[errCode] || errCode);
+      }
+
+      // /auth/register returns { message: 'VERIFICATION_REQUIRED', email } and does
+      // NOT issue tokens — user must verify before they can rate/suggest. Books site
+      // routes them to /verify-email next.
+      return { verificationRequired: true };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Falha ao criar conta';
+      setError(message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function signOut() {
     clearTokens();
   }
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, error, signIn, signInWithGoogle, signOut }}
+      value={{ user, loading, error, signIn, signInWithGoogle, signUp, signOut }}
     >
       {children}
     </AuthContext.Provider>

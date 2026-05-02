@@ -10,25 +10,25 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { GoogleSignIn } from '@/components/auth/google-sign-in';
 import { useAuth } from '@/lib/auth-context';
 
-function LoginForm() {
+function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect') || '/browse';
-  const { signIn, signInWithGoogle, error } = useAuth();
+  const { signUp, signInWithGoogle, error } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsSubmitting(true);
     const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const displayName = formData.get('displayName') as string;
     try {
-      await signIn(
-        formData.get('email') as string,
-        formData.get('password') as string,
-      );
-      router.push(redirect);
+      await signUp(email, password, displayName);
+      router.push(`/verify-email?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirect)}`);
     } catch {
-      // error is surfaced via context
+      // surfaced via context
     } finally {
       setIsSubmitting(false);
     }
@@ -41,7 +41,7 @@ function LoginForm() {
         await signInWithGoogle(googleIdToken);
         router.push(redirect);
       } catch {
-        // error is surfaced via context
+        // surfaced via context
       } finally {
         setIsSubmitting(false);
       }
@@ -54,10 +54,10 @@ function LoginForm() {
       <div className="glass-card w-full max-w-[28rem] p-8 shadow-xl">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-            Entrar
+            Criar conta
           </h1>
           <p className="mt-2 text-sm text-text-secondary">
-            Use sua conta Kosmyn para baixar livros.
+            Avalie livros e sugira novos conteúdos.
           </p>
         </div>
 
@@ -81,6 +81,21 @@ function LoginForm() {
           )}
 
           <div className="space-y-2">
+            <Label htmlFor="displayName">Nome</Label>
+            <Input
+              id="displayName"
+              name="displayName"
+              type="text"
+              placeholder="Como devemos te chamar"
+              required
+              autoFocus
+              minLength={1}
+              maxLength={80}
+              className="h-11"
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="email">E-mail</Label>
             <Input
               id="email"
@@ -88,7 +103,6 @@ function LoginForm() {
               type="email"
               placeholder="voce@email.com"
               required
-              autoFocus
               className="h-11"
             />
           </div>
@@ -101,8 +115,10 @@ function LoginForm() {
               type="password"
               placeholder="••••••••"
               required
+              minLength={6}
               className="h-11"
             />
+            <p className="text-xs text-text-tertiary">Mínimo 6 caracteres.</p>
           </div>
 
           <Button
@@ -111,17 +127,39 @@ function LoginForm() {
             className="aurora-gradient w-full border-0 text-white hover:opacity-90"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Entrando...' : 'Entrar'}
+            {isSubmitting ? 'Criando conta...' : 'Criar conta'}
           </Button>
+
+          <p className="text-center text-xs text-text-tertiary">
+            Ao criar conta, você concorda com os{' '}
+            <Link
+              href="https://kosmyn.com/legal/terms"
+              className="underline-offset-2 hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Termos de Uso
+            </Link>{' '}
+            e a{' '}
+            <Link
+              href="https://kosmyn.com/legal/privacy"
+              className="underline-offset-2 hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Política de Privacidade
+            </Link>
+            .
+          </p>
         </form>
 
         <p className="mt-6 text-center text-sm text-text-secondary">
-          Não tem conta?{' '}
+          Já tem conta?{' '}
           <Link
-            href={`/signup${redirect !== '/browse' ? `?redirect=${encodeURIComponent(redirect)}` : ''}`}
+            href={`/login${redirect !== '/browse' ? `?redirect=${encodeURIComponent(redirect)}` : ''}`}
             className="text-accent underline-offset-2 hover:underline"
           >
-            Crie agora
+            Entrar
           </Link>
         </p>
       </div>
@@ -129,12 +167,10 @@ function LoginForm() {
   );
 }
 
-export default function LoginPage() {
+export default function SignupPage() {
   return (
-    <Suspense
-      fallback={<main className="min-h-[calc(100vh-8rem)]" />}
-    >
-      <LoginForm />
+    <Suspense fallback={<main className="min-h-[calc(100vh-8rem)]" />}>
+      <SignupForm />
     </Suspense>
   );
 }
