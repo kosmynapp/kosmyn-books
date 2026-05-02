@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { BookCover } from './book-cover';
+import { RatingStars } from './rating-stars';
 import type { LibraryProgram } from '@/lib/api/books';
 
 export interface BookCardProps {
@@ -29,6 +30,13 @@ export function BookCard({ program, priority }: BookCardProps) {
         {program.tenantName && (
           <p className="text-sm text-text-tertiary">{program.tenantName}</p>
         )}
+        <RatingStars
+          programSlug={program.slug}
+          initialAvg={program.ratingAvg}
+          initialCount={program.ratingCount}
+          mode="display"
+          compact
+        />
       </div>
     </Link>
   );

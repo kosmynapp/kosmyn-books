@@ -38,6 +38,8 @@ export interface LibraryProgram {
   tenantSlug: string;
   tenantName: string;
   currentEdition: LibraryProgramEdition | null;
+  ratingAvg?: number | null;
+  ratingCount?: number;
 }
 
 export interface LibraryProgramVersioned extends LibraryProgram {
