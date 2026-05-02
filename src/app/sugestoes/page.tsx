@@ -31,14 +31,14 @@ export default async function SugestoesPage({ searchParams }: PageProps) {
   }).catch(() => ({ requests: [], total: 0 }));
 
   return (
-    <main className="container mx-auto max-w-4xl px-4 py-12">
+    <main className="container mx-auto max-w-[56rem] px-4 py-12">
       <header className="mb-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-text-primary">
               Sugestões da comunidade
             </h1>
-            <p className="mt-2 max-w-2xl text-base text-text-secondary">
+            <p className="mt-2 max-w-[42rem] text-base text-text-secondary">
               Sugira livros, vote nos que mais quer ver publicados. As mais votadas viram prioridade no roadmap.
             </p>
           </div>

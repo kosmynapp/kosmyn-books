@@ -15,7 +15,7 @@ export default async function SugestaoDetailPage({ params }: PageProps) {
   if (!request) return notFound();
 
   return (
-    <main className="container mx-auto max-w-3xl px-4 py-12">
+    <main className="container mx-auto max-w-[48rem] px-4 py-12">
       <Link
         href="/sugestoes"
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary"
