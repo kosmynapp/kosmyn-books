@@ -10,10 +10,10 @@ const API_BASE =
 const DEFAULT_TENANT_ID =
   process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID ?? 'default';
 
-function authHeaders(token: string): HeadersInit {
+function authHeaders(token: string, tenantId?: string): HeadersInit {
   return {
     'Content-Type': 'application/json',
-    'X-Tenant-Id': DEFAULT_TENANT_ID,
+    'X-Tenant-Id': tenantId ?? DEFAULT_TENANT_ID,
     Authorization: `Bearer ${token}`,
   };
 }
@@ -28,10 +28,11 @@ export async function submitRating(
   slug: string,
   rating: number,
   token: string,
+  tenantId?: string,
 ): Promise<RatingResult> {
   const res = await fetch(`${API_BASE}/books/programs/${slug}/ratings`, {
     method: 'POST',
-    headers: authHeaders(token),
+    headers: authHeaders(token, tenantId),
     body: JSON.stringify({ rating }),
   });
   if (!res.ok) {
@@ -41,10 +42,10 @@ export async function submitRating(
   return res.json();
 }
 
-export async function removeRating(slug: string, token: string) {
+export async function removeRating(slug: string, token: string, tenantId?: string) {
   const res = await fetch(`${API_BASE}/books/programs/${slug}/ratings`, {
     method: 'DELETE',
-    headers: authHeaders(token),
+    headers: authHeaders(token, tenantId),
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -56,9 +57,10 @@ export async function removeRating(slug: string, token: string) {
 export async function getMyRating(
   slug: string,
   token: string,
+  tenantId?: string,
 ): Promise<{ rating: number | null }> {
   const res = await fetch(`${API_BASE}/books/programs/${slug}/ratings/me`, {
-    headers: authHeaders(token),
+    headers: authHeaders(token, tenantId),
   });
   if (!res.ok) return { rating: null };
   return res.json();

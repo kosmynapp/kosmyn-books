@@ -178,6 +178,7 @@ export default async function BookPage({
               initialAvg={book.ratingAvg}
               initialCount={book.ratingCount}
               mode="interactive"
+              tenantId={book.tenantId}
             />
           </section>
 

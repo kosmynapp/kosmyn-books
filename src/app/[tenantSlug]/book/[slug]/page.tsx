@@ -8,6 +8,7 @@ import { BookCover } from '@/components/books/book-cover';
 import { VersionBadge } from '@/components/books/version-badge';
 import { EditionHistoryList } from '@/components/books/edition-history';
 import { DownloadButton } from '@/components/books/download-button';
+import { RatingStars } from '@/components/books/rating-stars';
 import { ReadingMeasure } from '@/components/typography/reading-measure';
 import { getPublicCrossTenantPrograms } from '@/lib/api/books';
 
@@ -140,6 +141,20 @@ export default async function TenantBookPage({ params }: PageProps) {
               label="Baixar EPUB"
             />
           </div>
+
+          <Separator className="my-8" />
+          <section>
+            <h2 className="mb-3 text-sm uppercase tracking-wider text-text-secondary">
+              Sua avaliação
+            </h2>
+            <RatingStars
+              programSlug={book.slug}
+              initialAvg={book.ratingAvg}
+              initialCount={book.ratingCount}
+              mode="interactive"
+              tenantId={book.tenantId}
+            />
+          </section>
 
           {edition.changelog && (
             <>

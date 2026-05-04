@@ -14,6 +14,12 @@ interface RatingStarsProps {
   /** display = read-only badge with avg+count; interactive = clickable stars */
   mode?: 'display' | 'interactive';
   compact?: boolean;
+  /**
+   * Tenant ID a usar no `X-Tenant-Id` ao chamar a API. Necessário em rotas
+   * tenant-scoped (medicina, idiomas, …) — sem isso o cliente cai no default
+   * (kosmyn) e o backend não acha o livro do tenant correto.
+   */
+  tenantId?: string;
 }
 
 function StarIcon({ filled, halfFill }: { filled: boolean; halfFill?: boolean }) {
@@ -39,6 +45,7 @@ export function RatingStars({
   initialCount,
   mode = 'display',
   compact = false,
+  tenantId,
 }: RatingStarsProps) {
   const { user } = useAuth();
   const [avg, setAvg] = useState<number | null>(initialAvg ?? null);
@@ -53,10 +60,10 @@ export function RatingStars({
     if (mode !== 'interactive' || !user) return;
     const token = localStorage.getItem('kosmyn_token');
     if (!token) return;
-    getMyRating(programSlug, token)
+    getMyRating(programSlug, token, tenantId)
       .then((r) => setMyRating(r.rating))
       .catch(() => {});
-  }, [mode, user, programSlug]);
+  }, [mode, user, programSlug, tenantId]);
 
   async function handleClick(value: number) {
     setError(null);
@@ -70,12 +77,12 @@ export function RatingStars({
     try {
       // Toggle off when clicking the same star
       if (myRating === value) {
-        const r = await removeRating(programSlug, token);
+        const r = await removeRating(programSlug, token, tenantId);
         setMyRating(null);
         setAvg(r.programRatingAvg);
         setCount(r.programRatingCount);
       } else {
-        const r = await submitRating(programSlug, value, token);
+        const r = await submitRating(programSlug, value, token, tenantId);
         setMyRating(r.rating);
         setAvg(r.programRatingAvg);
         setCount(r.programRatingCount);
