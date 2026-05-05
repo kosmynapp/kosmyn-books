@@ -20,10 +20,12 @@ export function BookCover({
   return (
     <div
       className={cn(
-        // max-w-xs (20rem/320px) caps the cover so the page detail doesn't
-        // need to scroll on standard laptop heights. mx-auto keeps it centered
-        // on mobile; lg:mx-0 left-aligns inside the sticky aside on desktop.
-        'relative mx-auto aspect-[5/7] w-full max-w-xs overflow-hidden rounded-md bg-surface-light lg:mx-0',
+        // max-w-[20rem] (320px) caps the cover so detail page doesn't scroll.
+        // mx-auto centra mobile, lg:mx-0 left-align em desktop.
+        // IMPORTANTE: usar valor arbitrário em vez de max-w-xs — memória
+        // feedback_tokens_preset_broken_classes registra que @kosmynapp/tokens
+        // preset quebra classes nomeadas como max-w-{xs,md,lg,xl} no kosmyn-*.
+        'relative mx-auto aspect-[5/7] w-full max-w-[20rem] overflow-hidden rounded-md bg-surface-light lg:mx-0',
         className,
       )}
     >
