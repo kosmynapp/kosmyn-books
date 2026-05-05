@@ -6,8 +6,13 @@
  * applies daily rate limits (3 creates/day, 100 votes/day).
  */
 
+// Server-side calls (SSR pages) prefer KOSMYN_INTERNAL_API_URL because
+// Cloudflare 403s egress from Railway containers to the public api.kosmyn.com.
+// On the client, NEXT_PUBLIC_KOSMYN_API_URL is the only one inlined at build.
 const API_BASE =
-  process.env.NEXT_PUBLIC_KOSMYN_API_URL ?? 'https://api.kosmyn.com/api/v1';
+  process.env.KOSMYN_INTERNAL_API_URL ??
+  process.env.NEXT_PUBLIC_KOSMYN_API_URL ??
+  'https://api.kosmyn.com/api/v1';
 const DEFAULT_TENANT_ID =
   process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID ?? 'default';
 
